@@ -61,6 +61,10 @@ cannot do here, and the sync rule.
 - [templates/AIP-C01_Performance-Analysis-Template.md](templates/AIP-C01_Performance-Analysis-Template.md)
   — the output spec used when grading an answer sheet, so runs are comparable across exams and
   attempts.
+- [agents/](agents/README.md) — two local study agents on the Strands SDK + Ollama: a **Socratic
+  tutor** that teaches by questioning (grounded in the guides via tools) and an **understanding
+  verifier** that drills the mock-exam bank with deterministic scoring and judges free-recall
+  explanations. See its README for setup.
 
 ## Suggested study loop
 
