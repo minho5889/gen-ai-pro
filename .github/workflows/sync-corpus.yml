@@ -1,0 +1,59 @@
+# CD: study-content changes re-chunk + re-ingest the Knowledge Base
+# (CICD-SPEC decision 2: automatic). Consistency checker guards.
+name: sync-corpus
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "guides/**"
+      - "_cram/**"
+      - "AIP-C01-Exam-Blueprint.md"
+      - "website/scripts/sync_corpus.py"
+  workflow_dispatch:
+
+permissions:
+  id-token: write
+  contents: read
+
+concurrency:
+  group: sync-corpus
+
+jobs:
+  ingest:
+    # Skips gracefully until the repo variables are bootstrapped.
+    if: vars.GHA_DEPLOY_ROLE_ARN != ''
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Consistency check (the guard)
+        run: python3 tools/consistency_check.py
+      - uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ vars.GHA_DEPLOY_ROLE_ARN }}
+          aws-region: ${{ vars.AWS_REGION }}
+      - uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_wrapper: false
+      - name: Resolve KB targets from remote state
+        id: tf
+        working-directory: website/terraform
+        run: |
+          terraform init -input=false \
+            -backend-config="bucket=${{ vars.TF_STATE_BUCKET }}" \
+            -backend-config="key=website/terraform.tfstate" \
+            -backend-config="region=${{ vars.AWS_REGION }}" \
+            -backend-config="use_lockfile=true"
+          echo "bucket=$(terraform output -raw corpus_bucket)" >> "$GITHUB_OUTPUT"
+          echo "kb=$(terraform output -raw knowledge_base_id)" >> "$GITHUB_OUTPUT"
+          echo "ds=$(terraform output -raw data_source_id)" >> "$GITHUB_OUTPUT"
+      - name: Chunk, sync, ingest (one batched job)
+        run: |
+          pip install boto3 --quiet
+          python3 website/scripts/sync_corpus.py \
+            --bucket "${{ steps.tf.outputs.bucket }}" \
+            --kb-id "${{ steps.tf.outputs.kb }}" \
+            --data-source-id "${{ steps.tf.outputs.ds }}"

@@ -8,6 +8,7 @@ data "archive_file" "chat" {
   type        = "zip"
   source_dir  = "${path.module}/../backend"
   output_path = "${path.module}/.build/chat.zip"
+  excludes    = ["test_smoke.py", "__pycache__"]
 }
 
 resource "aws_iam_role" "chat" {

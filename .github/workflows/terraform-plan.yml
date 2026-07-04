@@ -1,0 +1,53 @@
+# Visibility, never mutation: plan on main pushes touching IaC; apply stays
+# human + local (CICD-SPEC non-goal). -refresh=false keeps the required IAM
+# surface to state-read only. PRs get fmt/validate from ci.yml instead
+# (the OIDC trust is main-only, so PRs cannot read state — by design).
+name: terraform-plan
+
+on:
+  push:
+    branches: [main]
+    paths: ["website/terraform/**"]
+  workflow_dispatch:
+
+permissions:
+  id-token: write
+  contents: read
+
+concurrency:
+  group: terraform-plan
+
+jobs:
+  plan:
+    # Skips gracefully until the repo variables are bootstrapped.
+    if: vars.GHA_DEPLOY_ROLE_ARN != ''
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: website/terraform
+    steps:
+      - uses: actions/checkout@v4
+      - uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ vars.GHA_DEPLOY_ROLE_ARN }}
+          aws-region: ${{ vars.AWS_REGION }}
+      - uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_wrapper: false
+      - name: Init against remote state
+        run: |
+          terraform init -input=false \
+            -backend-config="bucket=${{ vars.TF_STATE_BUCKET }}" \
+            -backend-config="key=website/terraform.tfstate" \
+            -backend-config="region=${{ vars.AWS_REGION }}" \
+            -backend-config="use_lockfile=true"
+      - name: Plan (config vs state; no refresh, no lock, no apply)
+        run: |
+          terraform plan -refresh=false -lock=false -input=false -no-color \
+            -out=/dev/null 2>&1 | tee plan.txt
+          {
+            echo '## terraform plan (config vs state — apply locally)'
+            echo '```'
+            tail -60 plan.txt
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"

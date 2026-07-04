@@ -1,0 +1,52 @@
+# CD: static site — main only, path-filtered, OIDC (no stored keys).
+name: deploy-frontend
+
+on:
+  push:
+    branches: [main]
+    paths: ["website/frontend/**"]
+  workflow_dispatch:
+
+permissions:
+  id-token: write
+  contents: read
+
+concurrency:
+  group: deploy-frontend
+
+jobs:
+  deploy:
+    # Skips gracefully until the repo variables are bootstrapped.
+    if: vars.GHA_DEPLOY_ROLE_ARN != ''
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Build (the guard — a red build deploys nothing)
+        working-directory: website/frontend
+        run: npm ci --no-fund --no-audit && npm run build
+      - uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ vars.GHA_DEPLOY_ROLE_ARN }}
+          aws-region: ${{ vars.AWS_REGION }}
+      - uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_wrapper: false
+      - name: Resolve deploy targets from remote state
+        id: tf
+        working-directory: website/terraform
+        run: |
+          terraform init -input=false \
+            -backend-config="bucket=${{ vars.TF_STATE_BUCKET }}" \
+            -backend-config="key=website/terraform.tfstate" \
+            -backend-config="region=${{ vars.AWS_REGION }}" \
+            -backend-config="use_lockfile=true"
+          echo "bucket=$(terraform output -raw site_bucket)" >> "$GITHUB_OUTPUT"
+          echo "distribution=$(terraform output -raw cloudfront_distribution_id)" >> "$GITHUB_OUTPUT"
+      - name: Sync + invalidate
+        run: |
+          aws s3 sync website/frontend/dist/ "s3://${{ steps.tf.outputs.bucket }}" --delete
+          aws cloudfront create-invalidation \
+            --distribution-id "${{ steps.tf.outputs.distribution }}" --paths "/*"

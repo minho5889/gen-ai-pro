@@ -4,6 +4,7 @@
 __pycache__/
 
 # website build/deploy artifacts
+website/terraform/backend.hcl
 website/terraform/.terraform/
 website/terraform/.terraform.lock.hcl
 website/terraform/terraform.tfstate*

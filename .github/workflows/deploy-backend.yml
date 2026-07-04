@@ -1,0 +1,52 @@
+# CD: chat Lambda code — main only, path-filtered, OIDC. Smoke test guards.
+name: deploy-backend
+
+on:
+  push:
+    branches: [main]
+    paths: ["website/backend/**"]
+  workflow_dispatch:
+
+permissions:
+  id-token: write
+  contents: read
+
+concurrency:
+  group: deploy-backend
+
+jobs:
+  deploy:
+    # Skips gracefully until the repo variables are bootstrapped.
+    if: vars.GHA_DEPLOY_ROLE_ARN != ''
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+      - name: Smoke test (the guard)
+        run: python3 website/backend/test_smoke.py
+      - uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ vars.GHA_DEPLOY_ROLE_ARN }}
+          aws-region: ${{ vars.AWS_REGION }}
+      - uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_wrapper: false
+      - name: Resolve function name from remote state
+        id: tf
+        working-directory: website/terraform
+        run: |
+          terraform init -input=false \
+            -backend-config="bucket=${{ vars.TF_STATE_BUCKET }}" \
+            -backend-config="key=website/terraform.tfstate" \
+            -backend-config="region=${{ vars.AWS_REGION }}" \
+            -backend-config="use_lockfile=true"
+          echo "function=$(terraform output -raw lambda_function_name)" >> "$GITHUB_OUTPUT"
+      - name: Package + update code
+        run: |
+          cd website/backend
+          zip -r ../chat.zip . -x "test_smoke.py" -x "__pycache__/*"
+          aws lambda update-function-code \
+            --function-name "${{ steps.tf.outputs.function }}" \
+            --zip-file fileb://../chat.zip --publish

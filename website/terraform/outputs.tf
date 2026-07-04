@@ -27,3 +27,8 @@ output "cloudfront_distribution_id" {
   value       = aws_cloudfront_distribution.site.id
   description = "For cache invalidation after frontend deploys"
 }
+
+output "lambda_function_name" {
+  value       = aws_lambda_function.chat.function_name
+  description = "CD target for backend code updates"
+}

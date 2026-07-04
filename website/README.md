@@ -75,6 +75,34 @@ The exact field is point-in-time (VERIFICATION-LOG row 27) — the variable pass
 to `additionalModelRequestFields` untouched. The header badge in the UI shows measured TTFT and
 total time per response; target ≤ ~800 ms TTFT.
 
+## CI/CD
+
+Policy in [CICD-SPEC.md](CICD-SPEC.md). Five workflows: `ci` (checker, terraform validate,
+frontend build, backend smoke — every push/PR, zero AWS access), plus path-filtered, main-only,
+OIDC-authenticated CD: `deploy-frontend`, `deploy-backend`, `sync-corpus` (auto re-ingest on
+guide/cram edits), and `terraform-plan` (plan-never-apply). Deploy workflows skip gracefully until
+bootstrapped.
+
+One-time bootstrap (after your first `terraform apply`):
+
+```bash
+# 1. Remote state (creates the versioned state bucket + backend.hcl, then):
+./scripts/bootstrap_state.sh us-east-1
+cd terraform && terraform init -backend-config=backend.hcl -migrate-state
+
+# 2. OIDC deploy role (in the stack already — just apply and read the output):
+terraform apply
+terraform output -raw gha_deploy_role_arn
+
+# 3. GitHub repo variables (Settings > Secrets and variables > Actions > Variables):
+#      AWS_REGION, TF_STATE_BUCKET, GHA_DEPLOY_ROLE_ARN
+
+# 4. Branch protection (Settings > Branches > Add rule for main):
+#      require status checks: content, terraform, frontend, backend
+```
+
+No AWS keys are ever stored in GitHub — the role trusts only `main` of this repo via OIDC.
+
 ## Known point-in-time risks
 
 - `awscc` schemas for S3 Vectors / KB are young — if `terraform plan` errors on an attribute name,

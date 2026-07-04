@@ -63,6 +63,11 @@ ideal, but Bedrock re-embeds the data source's changed objects — md5-diff uplo
 
 ## Open decisions (sign-off before implementation)
 
+> **Approved 2026-07-06: all three, as recommended.** Implemented in `.github/workflows/`
+> (ci / deploy-frontend / deploy-backend / sync-corpus / terraform-plan), `terraform/oidc.tf`,
+> `terraform/state.tf`, and `scripts/bootstrap_state.sh`. Branch protection is a one-time manual
+> GitHub setting — steps in [README.md](README.md#cicd).
+
 1. **Remote Terraform state** — move state to a versioned S3 bucket with native lockfile locking
    (`use_lockfile`)? **Recommended: yes.** Enables plan-in-CI + `terraform output` as the deploy
    source of truth, and survives laptop loss. One-time bootstrap: create the state bucket, add
