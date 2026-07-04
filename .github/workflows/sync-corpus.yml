@@ -31,7 +31,7 @@ jobs:
           python-version: "3.12"
       - name: Consistency check (the guard)
         run: python3 tools/consistency_check.py
-      - uses: aws-actions/configure-aws-credentials@v4
+      - uses: aws-actions/configure-aws-credentials@v6
         with:
           role-to-assume: ${{ vars.GHA_DEPLOY_ROLE_ARN }}
           aws-region: ${{ vars.AWS_REGION }}
