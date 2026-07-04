@@ -987,7 +987,7 @@ Trap 6 — Reaching for the biggest model by default. The exam rewards the cheap
 <details>
 <summary>Q3: An exam option proposes serving a distilled custom model's steady high-volume production workload through an on-demand custom model deployment to minimize cost. What is the catch?</summary>
 
-**Answer:** On-demand custom model deployments do exist (deploy the custom model, invoke its deployment ARN, pay per token) — but they carry no throughput guarantee and fit variable or lower-volume traffic. For steady high-volume serving, Provisioned Throughput is the appropriate choice and typically the cheaper one at sustained utilization. The older absolute — "custom models cannot be invoked on-demand" — is outdated *(point-in-time)*.
+**Answer:** On-demand custom model deployments do exist (deploy the custom model, invoke its deployment ARN, pay per token) — but they carry no throughput guarantee and fit variable or lower-volume traffic. For steady high-volume serving, Provisioned Throughput is the appropriate choice and typically the cheaper one at sustained utilization. The older absolute claim (that a custom model could never be served on-demand) is outdated *(point-in-time)*.
 </details>
 
 <details>

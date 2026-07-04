@@ -38,7 +38,7 @@ Passing score on the real exam is 750/1000 (compensatory — pass overall, not p
 1. **Time-box it.** The real exam is 180 minutes for 65 scored + 10 unscored = 75 questions (~2.4 min/question). For this 65-question set, aim for ~150 minutes.
 2. Answer from the questions file; fill in `AIP-C01-Mock-Exam-1_AnswerSheet.md` as you go (record confidence honestly — it powers the performance analysis).
 3. Grade against the `analysis/` files.
-4. **Analyze your results.** Ask Claude Code to grade your completed answer sheet against the `analysis/` files and write `analysis/AIP-C01_Performance_Analysis.md` — your score, incorrect-answer deep-dives, weak-topic drill-down, and study recommendations pointing back at the matching guides and cram sheets.
+4. **Analyze your results.** Ask Claude Code to grade your completed answer sheet against the `analysis/` files and write `analysis/AIP-C01_Performance_Analysis.md` following the output spec in [`../templates/AIP-C01_Performance-Analysis-Template.md`](../templates/AIP-C01_Performance-Analysis-Template.md) — score, per-domain breakdown, incorrect-answer deep-dives, confidence calibration, and prioritized re-study recommendations. Using the template keeps attempts comparable across exams and retakes.
 
 ## Notes
 

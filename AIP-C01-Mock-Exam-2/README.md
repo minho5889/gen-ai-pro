@@ -41,8 +41,10 @@ multi-select option tables — see the correction notes inside the affected anal
 2. Answer from the questions file; fill in `AIP-C01-Mock-Exam-2_AnswerSheet.md` (record confidence honestly).
 3. Grade against the `analysis/` files.
 4. Ask Claude Code to grade your completed answer sheet against the `analysis/` files and write
-   `analysis/AIP-C01_Performance_Analysis.md` — score, incorrect-answer deep-dives, weak-topic
-   drill-down, and study recommendations.
+   `analysis/AIP-C01_Performance_Analysis.md` following the output spec in
+   [`../templates/AIP-C01_Performance-Analysis-Template.md`](../templates/AIP-C01_Performance-Analysis-Template.md)
+   — score, per-domain breakdown, incorrect-answer deep-dives, confidence calibration, and
+   prioritized re-study recommendations. Same template as Exam 1, so attempts stay comparable.
 
 ## Notes
 
