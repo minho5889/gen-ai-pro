@@ -120,9 +120,9 @@ Changing the embedding model changes how queries are encoded, but the stored chu
 **Task:** Task 5.1
 
 ### 3. Option Analysis
-- **A** ❌ Add a regression quality gate that re-runs a fixed golden dataset against each candidate version and fails the build if scores fall below the recorded baseline threshold
+- **A** ✅ Add a regression quality gate that re-runs a fixed golden dataset against each candidate version and fails the build if scores fall below the recorded baseline threshold
 - **B** ❌ Rely on a built-in AWS/Bedrock 'HallucinationRate' CloudWatch metric to alarm on hallucinations, since Bedrock emits it automatically once invocation logging is enabled
-- **C** ❌ Derive Output Tokens Per Second (OTPS) from OutputTokenCount, InvocationLatency, and TimeToFirstToken to distinguish a workload change (stable OTPS) from a service-side throughput degradation (dropping OTPS) when InvocationLatency rises
+- **C** ✅ Derive Output Tokens Per Second (OTPS) from OutputTokenCount, InvocationLatency, and TimeToFirstToken to distinguish a workload change (stable OTPS) from a service-side throughput degradation (dropping OTPS) when InvocationLatency rises
 - **D** ❌ Assume Amazon Bedrock Model Invocation Logging captures every request and response automatically, so no enablement step is needed before incidents occur
 - **E** ❌ Use exact-match accuracy and F1 as the primary golden-dataset metrics for the open-ended chat outputs, since they are the most objective scores available
 

@@ -39,9 +39,9 @@ Cascading trades average-case cost for worst-case latency: an escalated request 
 **Task:** Task Task 4.3
 
 ### 3. Option Analysis
-- **A** ❌ Activate cost allocation tags (before the spend occurs, since they are not retroactive) and view spend grouped by tag in AWS Cost Explorer to attribute Bedrock cost to each business unit
-- **B** ❌ Create an AWS Budget filtered on the third-party Billing entity (legal entity) so an alert fires when that LLM spend crosses the planned threshold
-- **C** ❌ Schedule recurring golden-dataset re-runs scored by Amazon Bedrock Evaluations (paired with an EventBridge scheduled rule) to surface gradual quality/hallucination drift
+- **A** ✅ Activate cost allocation tags (before the spend occurs, since they are not retroactive) and view spend grouped by tag in AWS Cost Explorer to attribute Bedrock cost to each business unit
+- **B** ✅ Create an AWS Budget filtered on the third-party Billing entity (legal entity) so an alert fires when that LLM spend crosses the planned threshold
+- **C** ✅ Schedule recurring golden-dataset re-runs scored by Amazon Bedrock Evaluations (paired with an EventBridge scheduled rule) to surface gradual quality/hallucination drift
 - **D** ❌ Rely on AWS Cost Anomaly Detection to alert on the third-party-LLM spend threshold, since it monitors all Bedrock charges including Marketplace models
 - **E** ❌ Alarm on a single static CloudWatch threshold over InvocationLatency to detect the answer-quality decline
 - **F** ❌ Use a single aggregate AWS/Bedrock error metric to detect quality drift, since increased hallucination raises the error count
@@ -68,8 +68,8 @@ Cost allocation tags (activated proactively, since tags are not retroactive) vie
 **Task:** Task Task 4.1
 
 ### 3. Option Analysis
-- **A** ❌ Batch inference is a good fit for the bulk, offline, cost-sensitive portion: it processes a large bounded request set asynchronously via S3 at a documented discount relative to on-demand, trading away real-time latency
-- **B** ❌ The late requirement breaks the batch fit: batch processes each record independently and supports neither tool calling (function calling) nor structured-output/JSON-schema enforcement, so the tool-calling and schema requirements must run on a real-time/async invocation path instead
+- **A** ✅ Batch inference is a good fit for the bulk, offline, cost-sensitive portion: it processes a large bounded request set asynchronously via S3 at a documented discount relative to on-demand, trading away real-time latency
+- **B** ✅ The late requirement breaks the batch fit: batch processes each record independently and supports neither tool calling (function calling) nor structured-output/JSON-schema enforcement, so the tool-calling and schema requirements must run on a real-time/async invocation path instead
 - **C** ❌ Batch inference guarantees real-time per-record responses, so it satisfies both the bulk processing and the new tool-calling requirement
 - **D** ❌ Enabling Bedrock prompt caching on the shared instruction prefix will further cut cost during the batch job, since prompt caching is supported on the batch inference API
 - **E** ❌ Provisioned Throughput must be purchased to run any batch job, because batch jobs require dedicated Model Units

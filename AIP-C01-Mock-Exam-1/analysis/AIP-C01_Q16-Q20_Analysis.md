@@ -13,17 +13,19 @@
 
 ### 3. Option Analysis
 - **A** ❌ It fails because Lambda concurrency is too low; raise the reserved concurrency and call StartIngestionJob on every event
-- **B** ✅ It fails because Bedrock ingestion quotas are tight and per-Region (about 5 concurrent jobs per account, 1 per KB, 1 per data source, with StartIngestionJob limited to roughly 0.1 RPS); the documented pattern buffers events in SQS and uses a Step Functions state machine to check quota and call StartIngestionJob, waiting and rechecking when capacity is unavailable
+- **B** ✅ It fails because ingestion is job-based and quota/throttle-bounded — each StartIngestionJob incrementally syncs the data source as a unit, concurrent ingestion jobs per knowledge base are capped by an adjustable quota (50 by default today), and the control-plane API throttles bursts — so one job per file event is redundant and gets throttled; the documented pattern buffers events in SQS and uses a Step Functions state machine to batch changes into periodic StartIngestionJob calls, waiting and rechecking when capacity is unavailable
 - **C** ❌ It fails because S3 event notifications cannot trigger EventBridge; use S3 Lifecycle policies to trigger the sync instead
 - **D** ❌ It fails because StartIngestionJob is synchronous; switch to IngestKnowledgeBaseDocuments for every changed file and skip buffering entirely
 
 ### 4. Correct Answer Deep-Dive
 **Answer: B**
 
-Bedrock's ingestion quotas are tight and per-Region (~5 concurrent jobs/account, 1/KB, 1/data source; StartIngestionJob ~0.1 RPS), so firing a sync per event under a burst immediately hits the limits. The documented reference architecture buffers with SQS and orchestrates with Step Functions that checks the quota and calls StartIngestionJob (waiting/rechecking when busy). A misattributes the failure to Lambda concurrency. C is false (S3 events can route to EventBridge; Lifecycle policies do not trigger syncs). D is wrong: StartIngestionJob is asynchronous (returns 202), and while direct ingestion exists for single known documents, the burst-survivable design is the buffer-and-orchestrate pattern.
+Ingestion is job-based: each StartIngestionJob incrementally syncs the whole data source, so firing one job per S3 event during a burst of hundreds of changes creates hundreds of redundant sync requests. Those requests then hit real ceilings — concurrent ingestion jobs per knowledge base are capped by an adjustable quota (50 by default per the current Bedrock quota table), and the StartIngestionJob control plane throttles call bursts — so calls fail or pile up while accomplishing nothing a single batched sync wouldn't. The documented reference architecture decouples events from jobs: buffer the S3 events in SQS, and let a Step Functions state machine drain the queue and trigger a batched sync, waiting and retrying when a job is already running. A misattributes the failure to Lambda concurrency. C is false (S3 events can route to EventBridge; Lifecycle policies do not trigger syncs). D is wrong: StartIngestionJob is asynchronous (returns 202), and while direct ingestion (IngestKnowledgeBaseDocuments) exists for single known documents, the burst-survivable design is the buffer-and-orchestrate pattern.
+
+> Note: quota figures corrected against the current AWS quota table (kb-managed-quotas). An earlier version of this key cited ~5 concurrent jobs/account, 1/KB, 1/data source and a ~0.1 RPS API limit — figures not found in current documentation; the documented default is 50 concurrent ingestion jobs per knowledge base. Quotas are point-in-time — re-verify near exam day.
 
 ### 5. Key Takeaway
-Bedrock's ingestion quotas are tight and per-Region (~5 concurrent jobs/account, 1/KB, 1/data source; StartIngestionJob ~0.1 RPS), so firing a sync per event under a burst immediately hits the limits.
+Ingestion is job-based and quota/throttle-bounded — decouple events from jobs: buffer file changes in SQS and batch them into StartIngestionJob calls with Step Functions, because firing one sync job per file event is redundant work that throttles under bursts.
 
 ---
 

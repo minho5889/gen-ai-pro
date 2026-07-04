@@ -66,7 +66,7 @@ Under a cross-Region profile a request can land in any destination Region, and i
 **Task:** Task 1.2
 
 ### 3. Option Analysis
-- **A** ✅ A customized (fine-tuned) model cannot be invoked on-demand and must be served through Provisioned Throughput, billed hourly per Model Unit
+- **A** ✅ A customized model is not served at the base model's on-demand rate — it must either be deployed as a custom model deployment for on-demand inference (custom-model per-token pricing) or served through Provisioned Throughput (billed hourly per Model Unit), and for steady high-traffic serving the Provisioned Throughput hourly cost is the realistic line item
 - **B** ❌ Fine-tuned models are only available through batch inference, billed per token at a discount
 - **C** ❌ Fine-tuned models require a one-time conversion fee but then use the same on-demand pricing as the base model
 - **D** ❌ Fine-tuned models can only be served from Amazon SageMaker endpoints, not Bedrock
@@ -74,10 +74,12 @@ Under a cross-Region profile a request can land in any destination Region, and i
 ### 4. Correct Answer Deep-Dive
 **Answer: A**
 
-A customized (fine-tuned, distilled, or imported) Bedrock model cannot be invoked on-demand — it requires Provisioned Throughput, which is billed hourly per Model Unit (with optional 1- or 6-month commitments and an MU quota request). The estimate must therefore include Provisioned Throughput hourly cost, not on-demand per-token cost. B is wrong: batch is not the serving path for custom models and does not bill that way. C invents a conversion fee and keeps on-demand pricing, which is not how custom models work. D is wrong: Bedrock serves custom models via Provisioned Throughput; SageMaker is a separate hosting option, not a requirement.
+The engineer's plan misses that a custom model has its own serving surfaces and pricing, distinct from the base model's on-demand rate. Current Bedrock documentation gives two setup options for custom-model inference: purchase Provisioned Throughput (dedicated capacity, billed hourly per Model Unit, with optional 1- or 6-month commitments and an MU quota request), or create a custom model deployment for on-demand inference (invoke via the deployment ARN, pay per token at custom-model pricing — suited to variable or lower-volume traffic). For a high-traffic production endpoint with sustained load, the Provisioned Throughput hourly cost is the number the estimate must carry; either way, "same on-demand per-token pricing as the base model" is the omission. B is wrong: batch is an offline bulk path, not the serving path for this endpoint, and does not bill that way. C invents a conversion fee and keeps base-model on-demand pricing, which is not how custom models are priced. D is wrong: Bedrock serves custom models itself (PT or custom model deployment); SageMaker is a separate hosting option, not a requirement.
+
+> Note: key updated during re-verification — an earlier version stated a custom model "cannot be invoked on-demand" outright. Current documentation (model-customization-use) offers on-demand inference for custom models via custom model deployments; the cost-estimate lesson stands, the absolute claim does not. Point-in-time — re-verify near exam day.
 
 ### 5. Key Takeaway
-A customized (fine-tuned, distilled, or imported) Bedrock model cannot be invoked on-demand — it requires Provisioned Throughput, which is billed hourly per Model Unit (with optional 1- or 6-month commitments and an MU quota request).
+A customized Bedrock model is served through its own surfaces — Provisioned Throughput (hourly per Model Unit; the realistic estimate for steady high traffic) or a custom model deployment for on-demand inference (per-token custom-model pricing) — never automatically at the base model's on-demand rate.
 
 ---
 

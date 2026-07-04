@@ -193,7 +193,7 @@
 - OpenSearch Serverless: up to **16,000 dimensions**; scales thousands→billions, no reindex.
 - S3 Vectors ≈ **90% cheaper**; sub-second latency. *(point-in-time)*
 - Quick-create = exactly **4** stores (OSS, Aurora PG Serverless, Neptune, S3 Vectors).
-- Ingestion quotas (per Region): ~**5** concurrent jobs/account, **1**/KB, **1**/data source; StartIngestionJob ~**0.1 RPS** (1 per 10s). *(point-in-time)*
+- Ingestion quotas: **50** concurrent ingestion jobs/KB (adjustable), **200** data sources/KB; StartIngestionJob bursts are throttled — batch events, don't fire one job per file. *(point-in-time)*
 - New embeddings queryable after a few minutes for all stores **except Aurora/RDS** (immediate).
 - Self-consistency: **5–20** reasoning paths, ~N× cost.
 - Chain-of-Draft: ~**75% fewer tokens**, ~**78% lower latency**. *(point-in-time)*

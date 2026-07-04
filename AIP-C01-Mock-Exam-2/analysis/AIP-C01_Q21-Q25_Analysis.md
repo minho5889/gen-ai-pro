@@ -67,8 +67,8 @@ Bedrock multi-agent collaboration has two modes: plain Supervisor (gather and sy
 
 ### 3. Option Analysis
 - **A** ❌ Have the MCP server reuse the user's admin token for downstream calls so permissions stay consistent
-- **B** ❌ Issue an explicitly scoped, purpose-generated downstream token carrying only READ and CREATE, so a hallucinated DELETE fails
-- **C** ❌ Retrieve a different token per tool and validate the audience (aud) claim so a token minted for one server cannot be replayed against another
+- **B** ✅ Issue an explicitly scoped, purpose-generated downstream token carrying only READ and CREATE, so a hallucinated DELETE fails
+- **C** ✅ Retrieve a different token per tool and validate the audience (aud) claim so a token minted for one server cannot be replayed against another
 - **D** ❌ Grant the action-group Lambda role AdministratorAccess and rely on Bedrock Guardrails to block destructive intent
 - **E** ❌ Disable CloudTrail logging on the MCP servers to reduce token exposure in logs
 - **F** ❌ Propagate the user identity by widening every tool role to match the user's session permissions

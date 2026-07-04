@@ -66,8 +66,8 @@ ValidationException is a deterministic client error caused by a malformed reques
 **Task:** Task 1.5
 
 ### 3. Option Analysis
-- **A** ❌ Hybrid search is only supported on stores with a filterable text field — Aurora/RDS, OpenSearch Serverless, and MongoDB Atlas; on any other store Bedrock silently falls back to semantic search
-- **B** ❌ To get true hybrid behavior, move the knowledge base to a hybrid-capable store such as OpenSearch Serverless so keyword matching actually executes
+- **A** ✅ Hybrid search is only supported on stores with a filterable text field — Aurora/RDS, OpenSearch Serverless, and MongoDB Atlas; on any other store Bedrock silently falls back to semantic search
+- **B** ✅ To get true hybrid behavior, move the knowledge base to a hybrid-capable store such as OpenSearch Serverless so keyword matching actually executes
 - **C** ❌ Requesting HYBRID against S3 Vectors raises a ValidationException, so the "no errors" observation is impossible
 - **D** ❌ Pure semantic search reliably matches exact tokens, so the chosen search type is irrelevant to the symptom
 - **E** ❌ Switching to a higher embedding dimension would resolve the missed exact-token matches
@@ -94,19 +94,21 @@ Hybrid (vector + keyword) search is supported only on Aurora/RDS, OpenSearch Ser
 **Task:** Task 1.4
 
 ### 3. Option Analysis
-- **A** ❌ Bedrock ingestion quotas are tight and per-Region — on the order of 5 concurrent jobs per account, 1 per knowledge base, and 1 per data source — and StartIngestionJob is rate-limited to roughly 0.1 requests per second
-- **B** ❌ A burst of hundreds of events firing StartIngestionJob directly will immediately exceed those limits and fail
-- **C** ❌ The documented reference pattern buffers events through SQS and uses a Step Functions state machine that checks the quota and waits/retries before calling StartIngestionJob
+- **A** ✅ Each StartIngestionJob syncs the data source as a unit (incrementally), and the service enforces real ceilings — an adjustable per-knowledge-base concurrent-ingestion-job quota (50 by default today) plus control-plane throttling on call bursts — so firing a job per file event is redundant work that runs into those ceilings
+- **B** ✅ A burst of hundreds of events firing StartIngestionJob directly will pile up redundant sync jobs and get throttled rather than being absorbed
+- **C** ✅ The documented reference pattern buffers events through SQS and uses a Step Functions state machine that checks the quota and waits/retries before calling StartIngestionJob
 - **D** ❌ Removing the quotas requires no change because StartIngestionJob auto-queues unlimited concurrent jobs internally
 - **E** ❌ Each StartIngestionJob re-embeds the entire data source, so the only fix is to disable incremental sync
 
 ### 4. Correct Answer Deep-Dive
 **Answer: ABC**
 
-The naive design breaks because Bedrock's ingestion quotas are per-Region and tight (≈5 concurrent jobs per account, 1 per KB, 1 per data source) and StartIngestionJob is rate-limited to about 0.1 RPS (A); a burst of hundreds of direct calls overruns these immediately (B). The documented event-driven reference architecture buffers with SQS and orchestrates with a Step Functions state machine that checks the quota and waits/retries before calling StartIngestionJob (C). D is false — there is no unlimited internal queue. E is false — StartIngestionJob is incremental (only added/modified/deleted docs), so a full re-embed is not the issue; the quota/rate limits are.
+The naive design breaks because ingestion is job-based: each StartIngestionJob incrementally syncs the data source as a unit, and the service enforces real ceilings — an adjustable per-knowledge-base concurrent-ingestion-job quota (50 by default per the current Bedrock quota table) plus control-plane throttling on call bursts — so a job per file event is redundant work that runs into those ceilings (A); a burst of hundreds of direct calls piles up throttled, redundant sync jobs instead of being absorbed (B). The documented event-driven reference architecture decouples events from jobs: buffer with SQS and orchestrate with a Step Functions state machine that batches changes and waits/retries before calling StartIngestionJob (C). D is false — there is no unlimited internal queue. E is false — StartIngestionJob is incremental (only added/modified/deleted docs), so a full re-embed is not the issue; the redundant-jobs-plus-throttling dynamic is.
+
+> Note: key updated during re-verification — an earlier version cited ~5 concurrent jobs/account, 1/KB, 1/data source and a ~0.1 RPS API limit, figures not found in current documentation (kb-managed-quotas documents 50 concurrent ingestion jobs per knowledge base). Quotas are point-in-time — re-verify near exam day.
 
 ### 5. Key Takeaway
-The naive design breaks because Bedrock's ingestion quotas are per-Region and tight (≈5 concurrent jobs per account, 1 per KB, 1 per data source) and StartIngestionJob is rate-limited to about 0.1 RPS (A); a burst of hundreds of direct calls overruns these immediately (B).
+Ingestion is job-based and quota/throttle-bounded — decouple events from jobs: buffer file changes in SQS and batch them into StartIngestionJob calls with Step Functions, because one sync job per file event is redundant work that throttles under bursts.
 
 ---
 
@@ -122,8 +124,8 @@ The naive design breaks because Bedrock's ingestion quotas are per-Region and ti
 **Task:** Task 1.6
 
 ### 3. Option Analysis
-- **A** ❌ Structural correctness is enforced by Structured outputs (a JSON Schema output format or strict tool use), not by Guardrails
-- **B** ❌ Amazon Bedrock Guardrails is the safety backstop for toxic content and PII filtering, but it does not guarantee valid JSON or schema conformance
+- **A** ✅ Structural correctness is enforced by Structured outputs (a JSON Schema output format or strict tool use), not by Guardrails
+- **B** ✅ Amazon Bedrock Guardrails is the safety backstop for toxic content and PII filtering, but it does not guarantee valid JSON or schema conformance
 - **C** ❌ Amazon Bedrock Guardrails can be configured to enforce that the output is valid JSON matching the schema, replacing the need for structured outputs
 - **D** ❌ A low temperature alone guarantees both schema-valid JSON and the absence of toxic or PII content
 - **E** ❌ Structured outputs evaluates input and output text against six safety policy types

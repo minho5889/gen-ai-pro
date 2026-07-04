@@ -40,7 +40,7 @@ Out of scope for the candidate: model development and training, advanced ML tech
 - Task 3.3: AI governance and compliance (SageMaker model cards, Glue data lineage + Data Catalog, metadata tagging, CloudTrail/CloudWatch Logs audit, drift/bias monitoring, token-level redaction).
 - Task 3.4: Responsible AI principles (reasoning displays, confidence metrics, Bedrock agent tracing, fairness metrics + A/B testing, LLM-as-a-judge evaluations, model cards documenting limitations).
 
-## Domain 4: Operational Efficiency and Optimization (12%)
+## Domain 4: Operational Efficiency and Optimization for GenAI Applications (12%)
 
 - Task 4.1: Cost optimization and resource efficiency (token estimation/tracking, context window optimization, prompt compression/pruning, cost-capability model selection, tiered FM usage, batching, provisioned throughput, semantic/prompt/edge caching).
 - Task 4.2: Optimize application performance (pre-computation, latency-optimized Bedrock models, parallel requests, streaming, retrieval/index optimization, temperature/top-k/top-p tuning, A/B testing).
@@ -66,9 +66,11 @@ Compute: App Runner, EC2, Lambda, Lambda@Edge, Outposts, Wavelength.
 
 Containers: ECR, ECS, EKS, Fargate.
 
+Customer Engagement: Amazon Connect.
+
 Database: Aurora, DocumentDB, DynamoDB (+ Streams), ElastiCache, Neptune, RDS.
 
-Developer Tools: Amplify, CDK, CLI, CloudFormation, CodeArtifact, CodeBuild, CodeDeploy, CodePipeline, Kiro, AWS SDKs, X-Ray.
+Developer Tools: Amplify, CDK, CLI, CloudFormation, CodeArtifact, CodeBuild, CodeDeploy, CodePipeline, AWS Tools and SDKs, X-Ray.
 
 Management/Governance: Auto Scaling, Chatbot, CloudTrail, CloudWatch (+ Logs, Synthetics), Cost Anomaly Detection, Cost Explorer, Managed Grafana, Service Catalog, Systems Manager, Well-Architected Tool.
 

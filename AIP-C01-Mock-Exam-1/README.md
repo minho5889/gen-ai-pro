@@ -3,7 +3,9 @@
 A full-length, domain-weighted mock exam for the AWS Certified Generative AI Developer – Professional
 (AIP-C01) certification. Scenario-based, with multiple-response items, written to mirror the real
 exam's style and traps. **Every answer key was fact-checked against current official AWS
-documentation** during generation (2 keys were corrected in that pass; 0 left unresolved).
+documentation** during generation (2 keys were corrected in that pass), and a July 2026 independent
+re-audit corrected two more items (Q29's explanation, Q49's question format) and refreshed stale
+quota figures (Q16) — see the correction notes inside the affected analysis files.
 
 ## Contents
 
@@ -26,12 +28,17 @@ documentation** during generation (2 keys were corrected in that pass; 0 left un
 65 scored questions total (the real exam adds 10 unscored). ~20% are multiple-response (Select TWO/THREE).
 Passing score on the real exam is 750/1000 (compensatory — pass overall, not per-domain).
 
+> **Format coverage:** the official exam guide defines four question types — multiple choice,
+> multiple response, **ordering** (arrange 3–5 steps), and **matching** (pair items to 3–7 prompts).
+> This drill uses only the first two; practice the other two formats with
+> [`../AIP-C01-Format-Drills/`](../AIP-C01-Format-Drills/Ordering-Matching-Drills.md).
+
 ## How to take it
 
 1. **Time-box it.** The real exam is 180 minutes for 65 scored + 10 unscored = 75 questions (~2.4 min/question). For this 65-question set, aim for ~150 minutes.
 2. Answer from the questions file; fill in `AIP-C01-Mock-Exam-1_AnswerSheet.md` as you go (record confidence honestly — it powers the performance analysis).
 3. Grade against the `analysis/` files.
-4. **Run the performance analyzer** (this folder follows `.kiro/steering/drill-conventions.md`): trigger the *Analyze Drill Performance* hook / `drill-performance-analyzer` agent, pointing it at this folder. It will produce `analysis/AIP-C01_Performance_Analysis.md` with your score, incorrect-answer deep-dives, weak-topic drill-down, and study recommendations.
+4. **Analyze your results.** Ask Claude Code to grade your completed answer sheet against the `analysis/` files and write `analysis/AIP-C01_Performance_Analysis.md` — your score, incorrect-answer deep-dives, weak-topic drill-down, and study recommendations pointing back at the matching guides and cram sheets.
 
 ## Notes
 

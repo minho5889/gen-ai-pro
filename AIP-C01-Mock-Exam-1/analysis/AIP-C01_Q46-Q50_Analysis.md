@@ -86,7 +86,7 @@ Correct: Model Invocation Logging is the only service that captures prompt/compl
 ### 1. Question Summary
 **Scenario:** A data-governance lead must, for a RAG application, (a) maintain a queryable metadata store of the source corpus and dataset versions, (b) visualize how data flowed from source through transformations to the model output for compliance reporting, and (c) ensure customer PII never persists in application logs, given that blocked content can still appear as plaintext in Model Invocation Logs.
 
-**Ask:** Which TWO statements correctly map services to these needs? (Select TWO)
+**Ask:** Which THREE statements correctly map services to these needs? (Select THREE)
 
 ### 2. Domain Mapping
 **Domain:** Domain 3: AI Safety, Security, and Governance
@@ -97,17 +97,17 @@ Correct: Model Invocation Logging is the only service that captures prompt/compl
 - **B** ❌ The AWS Glue Data Catalog is also where lineage graphs are visualized for compliance reporting
 - **C** ✅ Amazon DataZone or the SageMaker Catalog consumes Glue lineage and visualizes how data flowed from source to output
 - **D** ❌ A Bedrock guardrail with the sensitive information filter guarantees PII never reaches application logs
-- **E** ❌ Amazon Comprehend token-level redaction applied to log output before it propagates keeps PII out of the logs
+- **E** ✅ Amazon Comprehend token-level redaction applied to log output before it propagates keeps PII out of the logs
 
 ### 4. Correct Answer Deep-Dive
-**Answer: A, C, E (question is mis-specified: it says 'Select TWO' but three options are correct)**
+**Answer: A, C, E**
 
-Note: the scenario maps to three distinct needs and the correct answers are the three accurate service mappings. A is correct: the Glue Data Catalog is the metadata store and crawlers register schemas. C is correct: lineage visualization is DataZone / SageMaker Catalog, which consume Glue lineage. E is correct: Comprehend token-level redaction scrubs PII from log output before it persists — the antidote to the Model Invocation Logging plaintext trap. B is wrong: Glue stores metadata but is not the lineage visualization layer. D is wrong: the guardrail redacts inline at the model boundary but does not control what Model Invocation Logging writes — blocked content still lands as plaintext in the logs.
+The scenario maps to three distinct needs and the correct answers are the three accurate service mappings. A is correct: the Glue Data Catalog is the metadata store and crawlers register schemas. C is correct: lineage visualization is DataZone / SageMaker Catalog, which consume Glue lineage. E is correct: Comprehend token-level redaction scrubs PII from log output before it persists — the antidote to the Model Invocation Logging plaintext trap. B is wrong: Glue stores metadata but is not the lineage visualization layer. D is wrong: the guardrail redacts inline at the model boundary but does not control what Model Invocation Logging writes — blocked content still lands as plaintext in the logs.
 
-> Note: answer key corrected during AWS-doc fact-check. Source: https://docs.aws.amazon.com/datazone/latest/userguide/datazone-data-lineage.html
+> Note: answer key corrected during AWS-doc fact-check (source: https://docs.aws.amazon.com/datazone/latest/userguide/datazone-data-lineage.html). The question stem was subsequently corrected from "Select TWO" to "Select THREE" to match the three-part scenario and this key.
 
 ### 5. Key Takeaway
-Note: the scenario maps to three distinct needs and the correct answers are the three accurate service mappings.
+Catalog, lineage, and log hygiene are three different jobs: Glue Data Catalog stores the metadata, DataZone / SageMaker Catalog visualizes lineage consumed from Glue, and Comprehend token-level redaction scrubs PII before it lands in logs — a guardrail alone does not control what Model Invocation Logging persists.
 
 ---
 

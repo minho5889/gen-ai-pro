@@ -67,17 +67,19 @@ Cascading sends the 90 percent routine traffic to a cheap, fast model and escala
 
 ### 3. Option Analysis
 - **A** ❌ The model needs batch inference; reformat the requests as S3 input files
-- **B** ✅ Customized (fine-tuned) Bedrock models cannot be invoked on-demand; they must be served through Provisioned Throughput, which also requires requesting a Model Unit quota increase before a committed purchase
+- **B** ✅ A customized Bedrock model cannot be invoked like a base model — it must be given its own serving surface, and for steady high-volume production that is Provisioned Throughput (a committed purchase also requires a Model Unit quota increase first)
 - **C** ❌ The model must be re-imported as a base model so it qualifies for on-demand invocation
 - **D** ❌ On-demand works for custom models, but the region lacks capacity; enable a cross-Region inference profile
 
 ### 4. Correct Answer Deep-Dive
 **Answer: B**
 
-A custom (fine-tuned, distilled, or imported) Bedrock model can only be invoked via Provisioned Throughput, and a committed purchase requires a Model Unit quota increase through AWS Support first. A is wrong: batch is not supported for provisioned/custom serving and the workload is real-time. C is fabricated. D misattributes the failure to capacity; the failure is the on-demand/custom incompatibility, and cross-Region profiles do not enable on-demand custom serving.
+The code fails because a custom model has no base-model on-demand path — it must be served through a surface of its own. For this steady, high-volume production workload that surface is Provisioned Throughput (committed purchases require a Model Unit quota increase through AWS Support first). Current docs also offer a custom model deployment for on-demand inference, but it carries no throughput guarantee and suits variable or low traffic, not this workload. A is wrong: batch is not supported for provisioned/custom serving and the workload is real-time. C is fabricated. D misattributes the failure to capacity; cross-Region profiles route base-model on-demand traffic and do not serve a custom model.
+
+> Note: key updated during re-verification — an earlier version stated custom models "cannot be invoked on-demand" outright. Current documentation (model-customization-use) also offers on-demand inference via custom model deployments; PT remains the credited choice for this steady high-volume scenario. Point-in-time — re-verify near exam day.
 
 ### 5. Key Takeaway
-A custom (fine-tuned, distilled, or imported) Bedrock model can only be invoked via Provisioned Throughput, and a committed purchase requires a Model Unit quota increase through AWS Support first.
+A custom Bedrock model needs its own serving surface — Provisioned Throughput for steady high-volume, guaranteed-throughput traffic (MU quota increase before a committed purchase), or a custom model deployment for on-demand inference on variable traffic.
 
 ---
 

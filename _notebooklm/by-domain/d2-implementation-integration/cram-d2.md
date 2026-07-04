@@ -34,7 +34,7 @@
 | Inspect why agent chose a step / failed | Agent **trace** (OrchestrationTrace, FailureTrace) | Exposes rationale, I/O, failure reason |
 | Operate agents at scale, any framework, any model | **Amazon Bedrock AgentCore** | Framework- & model-agnostic operating platform |
 | Move LangGraph/CrewAI agent POC→prod securely | AgentCore | Bedrock Agents is Bedrock-only |
-| "Abandon Bedrock Agents and switch to AgentCore?" | No — complementary layers | Primitive vs operating platform; no forced migration |
+| "Abandon Bedrock Agents and switch to AgentCore?" | Existing workloads: no forced migration; **new builds: AgentCore** | Bedrock Agents is now **Agents Classic** — maintenance mode, closed to new customers 2026-07-30 *(point-in-time)* |
 | Serverless session-isolated host, up to 8 hrs | AgentCore **Runtime** | Secure serverless execution env |
 | One endpoint turning APIs/Lambda into agent tools | AgentCore **Gateway** | Managed MCP endpoint |
 | Token vault + OAuth, agent acts on user's behalf | AgentCore **Identity** (Cognito-powered) | Agent credential management |
@@ -173,7 +173,7 @@
 - **Residency ladder:** single country → In-Region; within a geography → Geo profile; no constraint, cheapest → Global; EU-operator-only → European Sovereign Cloud; US public sector → GovCloud.
 - **Agent CI/CD flow:** edit DRAFT → `PrepareAgent` → immutable version → repoint **alias**; rollback = repoint alias; kill-switch = `REJECT_INVOCATIONS`.
 - **Agency vs autonomy:** agency = permissions (control with least-privilege role / scoped tools); autonomy = independence (control with HITL approval). Distinct levers.
-- **Bedrock Agents vs AgentCore vs Strands:** Agents = managed primitive (Bedrock-only); AgentCore = operating platform (any framework/model); Strands = authoring SDK that runs on AgentCore. They stack — not either/or.
+- **Bedrock Agents vs AgentCore vs Strands:** Agents = managed primitive (Bedrock-only); AgentCore = operating platform (any framework/model); Strands = authoring SDK that runs on AgentCore. They stack — not either/or. *Status: Bedrock Agents is now **Agents Classic** — maintenance mode, closed to new customers 2026-07-30; new builds → AgentCore (point-in-time, verify near exam day).*
 - **Stopping/resilience controls:** unbounded loop → stopping conditions (max iterations/timeout/token limits); repeated failures piling up → circuit breaker; one slow call → timeout; primary down → graceful degradation/fallback.
 
 ---

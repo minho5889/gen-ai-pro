@@ -66,9 +66,9 @@ Nova Reel video generation is asynchronous-only through StartAsyncInvoke, writin
 **Task:** Task 2.4
 
 ### 3. Option Analysis
-- **A** ❌ Use CreateModelInvocationJob batch inference with JSONL input in S3 for the high-volume, non-urgent, cost-optimized work
+- **A** ✅ Use CreateModelInvocationJob batch inference with JSONL input in S3 for the high-volume, non-urgent, cost-optimized work
 - **B** ❌ Use StartAsyncInvoke for each individual document
-- **C** ❌ React to Bedrock job state-change events with an Amazon EventBridge rule instead of polling
+- **C** ✅ React to Bedrock job state-change events with an Amazon EventBridge rule instead of polling
 - **D** ❌ Poll GetModelInvocationJob in a Lambda loop every 30 seconds to detect completion
 - **E** ❌ Front the pipeline with a synchronous API Gateway endpoint for each document
 - **F** ❌ Use Provisioned Throughput so the batch completes faster than on-demand

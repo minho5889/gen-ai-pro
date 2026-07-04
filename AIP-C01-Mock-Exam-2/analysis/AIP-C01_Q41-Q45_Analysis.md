@@ -39,8 +39,8 @@ Detect mode reports findings in the guardrail trace but takes no action, letting
 **Task:** Task Task 3.1
 
 ### 3. Option Analysis
-- **A** ❌ Redact and screen the source data at ingestion (pre-ingestion cleaning), with role-based access to the knowledge base via metadata filtering
-- **B** ❌ Screen the retrieved chunks inside the pipeline with the ApplyGuardrail API or Amazon Comprehend before they are concatenated into the prompt
+- **A** ✅ Redact and screen the source data at ingestion (pre-ingestion cleaning), with role-based access to the knowledge base via metadata filtering
+- **B** ✅ Screen the retrieved chunks inside the pipeline with the ApplyGuardrail API or Amazon Comprehend before they are concatenated into the prompt
 - **C** ❌ Raise the guardrail's content-filter strength on the input query from MEDIUM to HIGH
 - **D** ❌ Enable Model Invocation Logging to S3 so the injected instruction is captured for later review
 - **E** ❌ Add an S3 Lifecycle policy to expire the corpus documents after 90 days

@@ -50,7 +50,7 @@ What is the root cause, and what is the correct production serving approach?
 
 **A.** The model needs batch inference; reformat the requests as S3 input files
 
-**B.** Customized (fine-tuned) Bedrock models cannot be invoked on-demand; they must be served through Provisioned Throughput, which also requires requesting a Model Unit quota increase before a committed purchase
+**B.** A customized Bedrock model cannot be invoked like a base model — it must be given its own serving surface, and for steady high-volume production that is Provisioned Throughput (a committed purchase also requires a Model Unit quota increase first)
 
 **C.** The model must be re-imported as a base model so it qualifies for on-demand invocation
 
@@ -76,7 +76,7 @@ Which choice satisfies the data-residency requirement while still giving cross-R
 
 ---
 
-## Question 5
+## Question 5 (Select THREE)
 
 Category: Domain 1: Foundation Model Integration, Data Management, and Compliance
 
@@ -116,7 +116,7 @@ What is the actual root cause and the correct fix?
 
 ---
 
-## Question 7
+## Question 7 (Select TWO)
 
 Category: Domain 1: Foundation Model Integration, Data Management, and Compliance
 
@@ -290,7 +290,7 @@ Why does the naive design fail, and what is the documented event-driven architec
 
 **A.** It fails because Lambda concurrency is too low; raise the reserved concurrency and call StartIngestionJob on every event
 
-**B.** It fails because Bedrock ingestion quotas are tight and per-Region (about 5 concurrent jobs per account, 1 per KB, 1 per data source, with StartIngestionJob limited to roughly 0.1 RPS); the documented pattern buffers events in SQS and uses a Step Functions state machine to check quota and call StartIngestionJob, waiting and rechecking when capacity is unavailable
+**B.** It fails because ingestion is job-based and quota/throttle-bounded — each StartIngestionJob incrementally syncs the data source as a unit, concurrent ingestion jobs per knowledge base are capped by an adjustable quota (50 by default today), and the control-plane API throttles bursts — so one job per file event is redundant and gets throttled; the documented pattern buffers events in SQS and uses a Step Functions state machine to batch changes into periodic StartIngestionJob calls, waiting and rechecking when capacity is unavailable
 
 **C.** It fails because S3 event notifications cannot trigger EventBridge; use S3 Lifecycle policies to trigger the sync instead
 
@@ -316,7 +316,7 @@ What is wrong with the teammate's plan, and what is the correct configuration pa
 
 ---
 
-## Question 18
+## Question 18 (Select TWO)
 
 Category: Domain 1: Foundation Model Integration, Data Management, and Compliance
 
@@ -336,7 +336,7 @@ Which two statements correctly resolve these issues? (Select TWO)
 
 ---
 
-## Question 19
+## Question 19 (Select THREE)
 
 Category: Domain 1: Foundation Model Integration, Data Management, and Compliance
 
@@ -456,7 +456,7 @@ Category: Domain 2: Implementation and Integration
 
 A bank fine-tuned an Amazon Bedrock foundation model on its labeled credit-policy data to enforce a consistent specialized response format that prompting alone could not reliably produce. It now needs to serve this customized model in a steady, high-volume production application and is deciding how to provision inference capacity.
 
-How must the bank serve the fine-tuned model?
+How should the bank provision inference capacity for this workload?
 
 **A.** On-demand inference, paying per token with no commitment
 
@@ -900,7 +900,7 @@ Category: Domain 3: AI Safety, Security, and Governance
 
 A data-governance lead must, for a RAG application, (a) maintain a queryable metadata store of the source corpus and dataset versions, (b) visualize how data flowed from source through transformations to the model output for compliance reporting, and (c) ensure customer PII never persists in application logs, given that blocked content can still appear as plaintext in Model Invocation Logs.
 
-Which TWO statements correctly map services to these needs? (Select TWO)
+Which THREE statements correctly map services to these needs? (Select THREE)
 
 **A.** The AWS Glue Data Catalog is the persistent metadata store for the corpus and datasets, with crawlers discovering schemas
 

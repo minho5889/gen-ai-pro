@@ -102,12 +102,12 @@ A single shared gateway role erases per-user identity in billing, which is why C
 ### 4. Correct Answer Deep-Dive
 **Answer: A**
 
-Amazon Bedrock supports identity-based policies, ABAC, temporary credentials, and service roles, but not resource-based policies, ACLs, or service-linked roles on GenAI resources. You cannot attach a bucket-style policy to a Knowledge Base, Agent, or Guardrail. Cross-account access is done with assumed roles in the owning account plus identity-based policies and SCPs. A and C are wrong because no resource-based policy exists to attach at all. D is unnecessary; an assumed-role pattern shares access without migrating the resource.
+Yes — the S3-bucket-policy analogy now holds for knowledge bases. Amazon Bedrock supports attaching a resource-based policy directly to a managed knowledge base (via PutResourcePolicy / GetResourcePolicy / DeleteResourcePolicy), naming the partner account's principals and granting the data-plane query actions. That is exactly the cross-account sharing mechanism: the owner attaches the resource policy, and the calling principal in the partner account also needs a matching identity-based policy on the knowledge base ARN (standard cross-account evaluation — both sides must allow). Know the caveats: it works for managed knowledge bases only (type MANAGED, not VECTOR); the grantable actions are bedrock:Retrieve and bedrock:GetDocumentContent (control-plane operations like GetKnowledgeBase or UpdateKnowledgeBase cannot be granted cross-account and stay with the owner); and wildcards are not allowed in the Resource or Action elements. B states the older general rule — most Bedrock GenAI resources still don't take resource-based policies, and assumed-role patterns remain valid — but it is wrong here because knowledge bases are now the documented exception for cross-account querying. C is wrong because the policy grants both Retrieve and GetDocumentContent, not Retrieve alone (the grain of truth: RetrieveAndGenerate is not a grantable resource-policy action). D is unnecessary — sharing works in place without migrating the resource.
 
 > Note: answer key corrected during AWS-doc fact-check. Source: https://docs.aws.amazon.com/bedrock/latest/userguide/kb-managed-cross-account.html
 
 ### 5. Key Takeaway
-Amazon Bedrock supports identity-based policies, ABAC, temporary credentials, and service roles, but not resource-based policies, ACLs, or service-linked roles on GenAI resources.
+Managed Bedrock knowledge bases support resource-based policies (PutResourcePolicy) for cross-account querying — scoped to bedrock:Retrieve and bedrock:GetDocumentContent, requiring an allow on both the resource policy and the caller's identity policy; control-plane operations never cross accounts.
 
 ---
 

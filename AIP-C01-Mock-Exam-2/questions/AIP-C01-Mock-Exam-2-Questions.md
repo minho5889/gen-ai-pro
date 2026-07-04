@@ -48,7 +48,7 @@ An insurance company fine-tuned a foundation model in Amazon Bedrock to enforce 
 
 What must the cost estimate account for that the engineer's plan omits?
 
-**A.** A customized (fine-tuned) model cannot be invoked on-demand and must be served through Provisioned Throughput, billed hourly per Model Unit
+**A.** A customized model is not served at the base model's on-demand rate — it must either be deployed as a custom model deployment for on-demand inference (custom-model per-token pricing) or served through Provisioned Throughput (billed hourly per Model Unit), and for steady high-traffic serving the Provisioned Throughput hourly cost is the realistic line item
 
 **B.** Fine-tuned models are only available through batch inference, billed per token at a discount
 
@@ -330,7 +330,7 @@ Which TWO statements explain the situation or correctly fix it? (Select TWO)
 
 ---
 
-## Question 19 (Select TWO)
+## Question 19 (Select THREE)
 
 Category: Task 1.4 — Vector stores (event-driven sync quotas)
 
@@ -338,9 +338,9 @@ A team needs every change to their S3-backed knowledge base reflected within min
 
 Which THREE statements correctly describe why this fails under load and the documented architecture? (Select THREE)
 
-**A.** Bedrock ingestion quotas are tight and per-Region — on the order of 5 concurrent jobs per account, 1 per knowledge base, and 1 per data source — and StartIngestionJob is rate-limited to roughly 0.1 requests per second
+**A.** Each StartIngestionJob syncs the data source as a unit (incrementally), and the service enforces real ceilings — an adjustable per-knowledge-base concurrent-ingestion-job quota (50 by default today) plus control-plane throttling on call bursts — so firing a job per file event is redundant work that runs into those ceilings
 
-**B.** A burst of hundreds of events firing StartIngestionJob directly will immediately exceed those limits and fail
+**B.** A burst of hundreds of events firing StartIngestionJob directly will pile up redundant sync jobs and get throttled rather than being absorbed
 
 **C.** The documented reference pattern buffers events through SQS and uses a Step Functions state machine that checks the quota and waits/retries before calling StartIngestionJob
 
@@ -474,7 +474,7 @@ What is the correct deployment approach, and why is the on-demand attempt failin
 
 **A.** Use batch inference for the custom model, because batch is the only mode that supports fine-tuned models
 
-**B.** Use Provisioned Throughput, because a customized (fine-tuned) Bedrock model can only be invoked through Provisioned Throughput and cannot be served on-demand
+**B.** Use Provisioned Throughput for this steady high-volume, latency-sensitive workload; the on-demand call fails because a custom model cannot be invoked directly by its model ARN — it must be served through Provisioned Throughput or first deployed as a custom model deployment (the on-demand path better suited to variable or low traffic)
 
 **C.** Keep on-demand but request a service quota increase on InvokeModel for custom models
 
@@ -1036,7 +1036,7 @@ What is the principal weakness of the cascading proposal for this specific workl
 
 ---
 
-## Question 57 (Select TWO)
+## Question 57 (Select THREE)
 
 Category: Task 4.3 — Monitoring systems (multi-select: cost attribution, third-party LLM spend, drift)
 

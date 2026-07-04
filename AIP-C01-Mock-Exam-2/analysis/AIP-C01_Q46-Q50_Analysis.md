@@ -12,8 +12,8 @@
 **Task:** Task Task 3.2
 
 ### 3. Option Analysis
-- **A** ❌ The Pinecone vector-store connection references a Secrets Manager secret ARN (credentialsSecretArn) holding its API key
-- **B** ❌ The Confluence data-source connector authenticates with credentials (API token or OAuth 2.0) stored in AWS Secrets Manager
+- **A** ✅ The Pinecone vector-store connection references a Secrets Manager secret ARN (credentialsSecretArn) holding its API key
+- **B** ✅ The Confluence data-source connector authenticates with credentials (API token or OAuth 2.0) stored in AWS Secrets Manager
 - **C** ❌ The Amazon S3 connector must also store an API key in Secrets Manager, scoped by a condition key
 - **D** ❌ First-party vector stores like Pinecone authenticate via IAM and need no secret
 - **E** ❌ All three connections share a single Secrets Manager secret to minimize secret sprawl
@@ -121,8 +121,8 @@ Model Monitor bias drift monitoring (ModelBiasMonitor) establishes a baseline an
 **Task:** Task Task 3.4
 
 ### 3. Option Analysis
-- **A** ❌ For an AWS-provided model's documented intended use and limitations, the committee reads an AWS AI Service Card, which is authored by AWS
-- **B** ❌ For its own models, the committee creates SageMaker Model Cards, which carry a risk-rating field (unknown, low, medium, high) and an immutable version history
+- **A** ✅ For an AWS-provided model's documented intended use and limitations, the committee reads an AWS AI Service Card, which is authored by AWS
+- **B** ✅ For its own models, the committee creates SageMaker Model Cards, which carry a risk-rating field (unknown, low, medium, high) and an immutable version history
 - **C** ❌ The committee should author AWS AI Service Cards to document its own internally built models
 - **D** ❌ SageMaker Model Cards are authored by AWS and read by the customer for AWS models
 - **E** ❌ Both artifacts are interchangeable since both document intended use and limitations

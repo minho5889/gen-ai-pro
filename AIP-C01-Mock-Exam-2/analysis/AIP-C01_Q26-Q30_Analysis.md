@@ -13,17 +13,19 @@
 
 ### 3. Option Analysis
 - **A** ❌ Use batch inference for the custom model, because batch is the only mode that supports fine-tuned models
-- **B** ✅ Use Provisioned Throughput, because a customized (fine-tuned) Bedrock model can only be invoked through Provisioned Throughput and cannot be served on-demand
+- **B** ✅ Use Provisioned Throughput for this steady high-volume, latency-sensitive workload; the on-demand call fails because a custom model cannot be invoked directly by its model ARN — it must be served through Provisioned Throughput or first deployed as a custom model deployment (the on-demand path better suited to variable or low traffic)
 - **C** ❌ Keep on-demand but request a service quota increase on InvokeModel for custom models
 - **D** ❌ Re-host the fine-tuned model on a SageMaker real-time endpoint, because Bedrock cannot serve any custom model
 
 ### 4. Correct Answer Deep-Dive
 **Answer: B**
 
-A customized (fine-tuned, distilled, or imported) Bedrock model can only be invoked through Provisioned Throughput - on-demand serving of a custom model is not supported, which is why the InvokeModel attempt fails. Batch inference (A) is not supported for provisioned/custom serving in this context and is for offline bulk work, not steady real-time traffic. No quota increase (C) enables on-demand serving of a custom model. Re-hosting on SageMaker (D) is unnecessary and the premise that Bedrock cannot serve custom models is false - it serves them via Provisioned Throughput.
+The validation error happens because a custom model needs a serving surface before it can be invoked: you cannot call InvokeModel against the custom model's ARN directly. Current Bedrock documentation gives two options — purchase Provisioned Throughput and invoke the provisioned resource, or create a custom model deployment and invoke its deployment ARN for on-demand, pay-per-token inference. For this workload — steady high-volume traffic with a predictable latency profile — Provisioned Throughput is the fit: dedicated capacity with guaranteed throughput and consistent latency, which the on-demand deployment path does not guarantee. Batch inference (A) is for offline bulk work, not steady real-time traffic. C misreads the failure: it is a validation error from invoking an unservable ARN, not a throttle — no quota increase makes direct model-ARN invocation work. Re-hosting on SageMaker (D) is unnecessary, and the premise that Bedrock cannot serve custom models is false — it serves them via Provisioned Throughput or custom model deployments.
+
+> Note: key updated during re-verification — an earlier version stated custom models "can only be invoked through Provisioned Throughput." Current documentation (model-customization-use) also offers on-demand inference via custom model deployments; PT remains the credited choice here because the scenario specifies steady high volume with a predictable latency profile. Point-in-time — re-verify near exam day.
 
 ### 5. Key Takeaway
-A customized (fine-tuned, distilled, or imported) Bedrock model can only be invoked through Provisioned Throughput - on-demand serving of a custom model is not supported, which is why the InvokeModel attempt fails.
+A custom model is never invoked by its model ARN directly — serve it through Provisioned Throughput (steady high volume, guaranteed throughput/latency) or a custom model deployment for on-demand inference (variable or low traffic), and match the choice to the traffic profile.
 
 ---
 
@@ -120,10 +122,10 @@ bedrock:InvokeAgent must be scoped to the agent-alias ARN (agent-alias/AGENT-ID/
 **Task:** Task 2.3
 
 ### 3. Option Analysis
-- **A** ❌ In-Region inference (or a single in-country Region) satisfies the requirement that data must not leave the country
+- **A** ✅ In-Region inference (or a single in-country Region) satisfies the requirement that data must not leave the country
 - **B** ❌ Global cross-Region inference satisfies the residency requirement because it is billed at source-Region rates
 - **C** ❌ Geographic (Geo) cross-Region inference guarantees data never leaves the single country, since billing stays in the source Region
-- **D** ❌ Bedrock cannot be deployed into a Wavelength Zone; place the application/inference-orchestration tier at the 5G edge while the model call still goes to Bedrock in-Region
+- **D** ✅ Bedrock cannot be deployed into a Wavelength Zone; place the application/inference-orchestration tier at the 5G edge while the model call still goes to Bedrock in-Region
 - **E** ❌ Deploying Bedrock onto AWS Outposts is required so the model runs in-country
 - **F** ❌ Enabling cross-Region inference has no effect on where abuse-detection-retained data is stored
 

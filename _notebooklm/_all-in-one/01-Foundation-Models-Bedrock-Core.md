@@ -207,7 +207,7 @@ Selection does not have to pick one model for all traffic. A powerful cost patte
 | "Need to analyze scanned invoices (images)" | Multimodal model | Modality requirement disqualifies text-only models |
 
 - Always estimate cost at expected volume, not per single call — token pricing compounds.
-- A fine-tuned Bedrock model cannot be invoked on-demand; it requires Provisioned Throughput.
+- A fine-tuned Bedrock model has no base-model on-demand path — serve it via Provisioned Throughput (steady high volume, guaranteed throughput) or a custom model deployment for on-demand inference (variable/low traffic) *(point-in-time)*.
 - Public benchmarks build the shortlist; Bedrock evaluation makes the decision.
 - "Latency-optimized" model configurations exist for time-sensitive interactive workloads.
 
@@ -455,7 +455,7 @@ Inference-mode choice is one of the clearest levers in Domain 4 (cost and perfor
 
 | If the exam says... | The answer is... | Why |
 |---|---|---|
-| "Use a fine-tuned/custom model in production" | Provisioned Throughput (required) | Custom models cannot be invoked on-demand |
+| "Use a fine-tuned/custom model in production" | Provisioned Throughput (steady high volume) or custom model deployment (on-demand, variable traffic) | Custom models need their own serving surface — never the base-model ARN |
 | "Spiky, unpredictable, or low traffic" | On-demand | Pay per use, no idle commitment |
 | "Steady high volume, guaranteed throughput, no throttling" | Provisioned Throughput | Dedicated MU capacity |
 | "Summarize 100,000 documents overnight, cheapest" | Batch inference | Async bulk via S3 at a lower price |
@@ -470,13 +470,13 @@ Inference-mode choice is one of the clearest levers in Domain 4 (cost and perfor
 
 ### Knowledge Check
 
-**Q1:** A company fine-tuned a foundation model in Bedrock and now wants to serve it in their production application. Which inference mode must they use?
+**Q1:** A company fine-tuned a foundation model in Bedrock and now wants to serve steady, high-volume production traffic with guaranteed throughput. Which inference mode fits?
 - A) On-demand
 - B) Batch inference
 - C) Provisioned Throughput
 - D) Any mode; it makes no difference
 
-**A:** C — A customized (fine-tuned) Bedrock model can only be invoked through Provisioned Throughput. On-demand (A) does not serve custom models, and batch (B) is not supported for provisioned/custom serving in this context. This requirement is one of the most reliably tested facts in this area.
+**A:** C — Guaranteed throughput for a custom model means Provisioned Throughput. A custom model is never invoked via the base-model ARN; current docs give two serving surfaces — a custom model deployment for on-demand inference (pay-per-token, no throughput guarantee; variable/low traffic) and Provisioned Throughput (dedicated Model Units) — and the steady high-volume, guaranteed-throughput requirement selects Provisioned Throughput. Batch (B) is offline bulk; on-demand via a custom model deployment (A) cannot guarantee throughput. *(Point-in-time — the on-demand custom-model path is newer; re-verify near exam day.)*
 
 **Q2:** Fill in the blank — Provisioned Throughput capacity is purchased in units called ___, each of which guarantees a defined number of input and output tokens per minute.
 
@@ -608,7 +608,7 @@ Full fine-tuning updates all of a model's parameters, which is computationally e
 
 Customizing a model produces an artifact you then have to operate. On AWS, the deployment and lifecycle tooling centers on Amazon SageMaker AI for hosting domain-specific fine-tuned models, with SageMaker Model Registry as the system of record for versioning and promoting models. Model Registry lets you catalog model versions, track which version is approved, and deploy a chosen version — the backbone of controlled, auditable model rollout.
 
-The non-negotiable fact to carry from Section 5: a customized Bedrock model can only be invoked through Provisioned Throughput. There is no on-demand option for custom models. So any production design that includes a fine-tuned, distilled, or imported Bedrock model implicitly includes a Provisioned Throughput purchase, with its Model Units, commitment term, and quota request. The exam often hides this dependency inside a customization scenario — if you see "deploy our fine-tuned model to production", Provisioned Throughput should be on your mental checklist.
+The fact to carry from Section 5: a customized Bedrock model is never invoked via a base-model ARN — it needs its own serving surface. Current docs give two: a custom model deployment for on-demand, pay-per-token inference (variable or low traffic, no throughput guarantee), or Provisioned Throughput (Model Units, commitment term, quota request) when traffic is steady and throughput must be guaranteed. A steady high-volume production design that includes a fine-tuned, distilled, or imported Bedrock model therefore still implies a Provisioned Throughput purchase — if you see "deploy our fine-tuned model to production at scale", Provisioned Throughput belongs on your mental checklist; for variable or exploratory traffic, the on-demand custom model deployment is the newer, cheaper-entry path *(point-in-time)*.
 
 ### Pipelines, Rollback, and Retirement
 
@@ -834,9 +834,9 @@ Trap 6 — Reaching for the biggest model by default. The exam rewards the cheap
 
 **A:** Introduce model cascading with dynamic content-based routing — send all traffic to a small, cheap model first and escalate only the complex 15% to a flagship model (for example, routing decided in Step Functions or application logic). Because the large majority of traffic is simple, most requests are served cheaply while quality is preserved for the queries that need the bigger model.
 
-**Q3:** An exam option proposes deploying a distilled custom model with on-demand inference to minimize cost. Why is this option invalid?
+**Q3:** An exam option proposes serving a distilled custom model's steady high-volume production workload through an on-demand custom model deployment to minimize cost. What is the catch?
 
-**A:** Customized models — including distilled models — cannot be invoked on-demand; they require Provisioned Throughput. The option is self-contradictory: there is no on-demand serving path for a custom Bedrock model, so "distilled custom model + on-demand" is impossible regardless of the cost goal.
+**A:** On-demand custom model deployments do exist (deploy the custom model, invoke its deployment ARN, pay per token) — but they carry no throughput guarantee and fit variable or lower-volume traffic. For steady high-volume serving, Provisioned Throughput is the appropriate choice and typically the cheaper one at sustained utilization. The older absolute — "custom models cannot be invoked on-demand" — is outdated *(point-in-time)*.
 
 **Q4:** True or False — When a cross-Region inference profile intermittently fails, the right first step is to switch to a different foundation model.
 
@@ -849,13 +849,13 @@ Trap 6 — Reaching for the biggest model by default. The exam rewards the cheap
 The AIP-C01 exam leans heavily on multiple-response items — pick the 2+ correct designs out of five-plus plausible-sounding options. Work each one before reading the answer; the wrong options here are built from this guide's named traps.
 
 **Q1:** A team is deploying a fine-tuned (customized) Bedrock model into a steady, high-volume production service. Which TWO statements about serving and operating this model are correct? (Select TWO)
-- A) The custom model can be invoked on-demand to avoid any fixed capacity cost
-- B) The custom model can only be invoked through Provisioned Throughput
+- A) The custom model can be invoked exactly like the base model, with no additional deployment or provisioning step
+- B) For guaranteed throughput on steady high-volume traffic, the custom model must be served through Provisioned Throughput
 - C) Provisioned Throughput is purchased in Model Units (MUs), and a committed purchase requires requesting an MU quota increase through AWS Support first
 - D) Batch inference is the cheapest way to serve this custom model interactively
 - E) Retiring the model later has no billing implication once training is paid for
 
-**A:** B, C — A customized (fine-tuned, distilled, or imported) Bedrock model cannot be served on-demand; Provisioned Throughput is required (B), and that capacity is bought in Model Units with a prerequisite Support quota increase for committed purchases (C). A is the guide's "forgetting Provisioned Throughput for custom models" trap — on-demand serving of a custom model does not exist. D is wrong twice over: batch is not supported for provisioned/custom serving and is not interactive. E is wrong because Provisioned Throughput bills hourly until you delete the provisioned model, so retirement must include releasing it to stop charges.
+**A:** B, C — Guaranteed throughput at steady high volume for a custom model means Provisioned Throughput (B), and that capacity is bought in Model Units with a prerequisite Support quota increase for committed purchases (C). A is wrong: a custom model is never invoked like the base model — it needs a serving surface first (Provisioned Throughput, or a custom model deployment for on-demand inference, which carries no throughput guarantee and so fails this workload's requirement). D is wrong twice over: batch is not supported for provisioned/custom serving and is not interactive. E is wrong because Provisioned Throughput bills hourly until you delete the provisioned model, so retirement must include releasing it to stop charges.
 
 **Q2:** An architect must let operations switch the active foundation model at runtime with no code deployment, and the design must absorb unpredictable single-Region traffic bursts without writing custom multi-Region load-balancing logic. Which TWO components directly satisfy these requirements? (Select TWO)
 - A) Store the active model identifier in AWS AppConfig, read by a Lambda abstraction layer behind API Gateway

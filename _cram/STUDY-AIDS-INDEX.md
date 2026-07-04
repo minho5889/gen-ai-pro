@@ -35,11 +35,17 @@ A NotebookLM-optimized copy of all guides (diagrams converted to prose, quizzes 
 the 9 files to a NotebookLM notebook for Audio Overviews and cross-guide synthesis Q&A. See
 `_notebooklm/README.md` for setup and the important "answers only from sources" caveat.
 
-## 4. Test it — practice exam (`AIP/AIP-C01-Mock-Exam-1/`)
+## 4. Test it — practice exams (`AIP-C01-Mock-Exam-1/`, `AIP-C01-Mock-Exam-2/`)
 
-A full 65-question, domain-weighted mock exam with answer keys **fact-checked against AWS docs**,
-wired into the drill → answer-sheet → performance-analyzer pipeline. See its `README.md`. Ask Claude
-Code for "Practice Exam 2" when you want fresh reps.
+Two full 65-question, domain-weighted mock exams with answer keys **fact-checked against AWS docs**,
+each following the drill → answer-sheet → performance-analysis loop described in its `README.md`.
+Ask Claude Code for "Practice Exam 3" when you want fresh reps.
+
+## 5. Drill the other formats — ordering & matching (`AIP-C01-Format-Drills/`)
+
+The real exam uses four question formats; the mock exams cover only multiple choice and multiple
+response. `Ordering-Matching-Drills.md` adds targeted reps for the other two — **ordering** (arrange
+3–5 steps) and **matching** (pair items to prompts) — one drill set per domain.
 
 ## Suggested study loop
 
@@ -49,7 +55,9 @@ run the performance analyzer → 6. let the weak-topic output point you back to 
 
 ## Maintenance
 
-- `scripts/lint_generation_artifacts.py` (or the *Lint Generation Artifacts* Kiro hook) guards against
-  LLM scaffolding leaking into any deliverable — run it before trusting newly generated material.
+- Before trusting newly generated material, have Claude Code lint it for LLM scaffolding artifacts
+  (leftover meta-notes, prompt fragments, placeholder text) and spot-check its factual claims.
 - Fast-moving facts (Bedrock quotas, AgentCore components, model availability) drift; re-verify with
   Claude Code + the AWS docs MCP before relying on a specific number close to exam day.
+- The guides in `guides/` are the source of truth — after editing one, regenerate its NotebookLM
+  copies (`_notebooklm/_all-in-one/` and the matching `by-domain/` folders); they do not auto-sync.

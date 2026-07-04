@@ -114,7 +114,7 @@ A Swarm is an autonomous team of agents that self-organize and hand off to the b
 ### 1. Question Summary
 **Scenario:** A bank fine-tuned an Amazon Bedrock foundation model on its labeled credit-policy data to enforce a consistent specialized response format that prompting alone could not reliably produce. It now needs to serve this customized model in a steady, high-volume production application and is deciding how to provision inference capacity.
 
-**Ask:** How must the bank serve the fine-tuned model?
+**Ask:** How should the bank provision inference capacity for this workload?
 
 ### 2. Domain Mapping
 **Domain:** Domain 2: Implementation and Integration
@@ -129,10 +129,12 @@ A Swarm is an autonomous team of agents that self-organize and hand off to the b
 ### 4. Correct Answer Deep-Dive
 **Answer: C**
 
-A customized (fine-tuned, distilled, or imported) Bedrock model can only be invoked through Provisioned Throughput; it cannot be served on-demand. This is one of the most reliably tested deployment facts. On-demand (A) does not serve custom models. Batch inference (B) is its own mode and is not supported for provisioned/custom serving, and the workload is real-time high-volume anyway. Cross-Region inference profiles (D) route on-demand requests across Regions for base models and do not make a fine-tuned model invokable on-demand.
+For a steady, high-volume production workload, a customized model is served through Provisioned Throughput — dedicated Model Units with guaranteed throughput. A custom model is never invoked like a base model: its serving surfaces are Provisioned Throughput or, per current docs, a custom model deployment for on-demand inference. The on-demand path (A) carries no throughput guarantee, which this workload needs. Batch inference (B) is offline bulk, not real-time. Cross-Region inference profiles (D) route base-model on-demand traffic and do not serve a fine-tuned model.
+
+> Note: key updated during re-verification — an earlier version stated custom models "can only be invoked through Provisioned Throughput." Current documentation (model-customization-use) also offers on-demand inference via custom model deployments; PT remains the credited choice for this steady high-volume scenario. Point-in-time — re-verify near exam day.
 
 ### 5. Key Takeaway
-A customized (fine-tuned, distilled, or imported) Bedrock model can only be invoked through Provisioned Throughput; it cannot be served on-demand.
+A custom model needs its own serving surface — for steady high-volume traffic with guaranteed throughput that is Provisioned Throughput; the newer on-demand custom model deployment path suits variable traffic *(point-in-time)*.
 
 ---
 
