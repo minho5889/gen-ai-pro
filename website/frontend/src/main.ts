@@ -104,7 +104,8 @@ async function send(message: string): Promise<void> {
           break;
         case "done":
           ttftEl.textContent = `TTFT ${Math.round(firstToken)} ms · total ${(
-            (performance.now() - t0) / 1000
+            (performance.now() - t0) /
+            1000
           ).toFixed(1)} s`;
           break;
         case "error":

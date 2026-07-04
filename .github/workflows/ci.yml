@@ -19,6 +19,17 @@ jobs:
           python-version: "3.12"
       - run: python3 tools/consistency_check.py
 
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install --quiet ruff
+      - run: ruff check .
+      - run: ruff format --check .
+
   terraform:
     runs-on: ubuntu-latest
     defaults:
@@ -44,6 +55,7 @@ jobs:
           cache: npm
           cache-dependency-path: website/frontend/package-lock.json
       - run: npm ci --no-fund --no-audit
+      - run: npx prettier --check .
       - run: npm run build
 
   backend:

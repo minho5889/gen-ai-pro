@@ -9,11 +9,11 @@ Usage:
     python3 agents/socratic_tutor.py [--topic "RAG chunking strategies"]
 Type 'quit' to end the session.
 """
+
 import argparse
 
-from strands import Agent
-
 from common import list_topics, local_model, read_section, search_guides
+from strands import Agent
 
 SYSTEM_PROMPT = """\
 You are a Socratic tutor for the AWS Certified Generative AI Developer - Professional
@@ -49,8 +49,11 @@ def main() -> None:
     )
 
     print("Socratic tutor ready (local model). Type 'quit' to end.\n")
-    opener = (f"I want to study: {args.topic}" if args.topic
-              else "Start the session: ask me what I want to study today.")
+    opener = (
+        f"I want to study: {args.topic}"
+        if args.topic
+        else "Start the session: ask me what I want to study today."
+    )
     agent(opener)  # default handler streams the reply to stdout
     while True:
         try:
@@ -62,8 +65,10 @@ def main() -> None:
         if not user:
             continue
         agent(user)
-    print("\nSession ended. Weak spots today are tomorrow's verifier drill: "
-          "python3 agents/verifier.py")
+    print(
+        "\nSession ended. Weak spots today are tomorrow's verifier drill: "
+        "python3 agents/verifier.py"
+    )
 
 
 if __name__ == "__main__":

@@ -1,6 +1,10 @@
 # gen-ai-pro
 
-Study materials for the **AWS Certified Generative AI Developer – Professional (AIP-C01)** exam.
+[![ci](https://github.com/minho5889/gen-ai-pro/actions/workflows/ci.yml/badge.svg)](https://github.com/minho5889/gen-ai-pro/actions/workflows/ci.yml)
+[![license: MIT](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
+
+Study platform for the **AWS Certified Generative AI Developer – Professional (AIP-C01)** exam:
+audited content, local study agents, and a RAG chat site.
 The certification is real (verified against the AWS catalog and the official exam guide PDF v1.0):
 75 questions (65 scored + 10 unscored), 180 minutes, scaled 100–1000 with 750 to pass, compensatory
 scoring, professional level. Four question types: multiple choice, multiple response, ordering, and
@@ -64,6 +68,25 @@ Y → why" tables, top traps, decision rules, hard numbers. `cram-d1.md` … `cr
 Read a guide → drill its Knowledge Checks → skim the matching cram sheet → after a few guides, sit a
 mock-exam slice and grade it with the template → let the weak-topic output point you back to the
 right guide/cram sheet → mix in format drills (and the [agents](agents/README.md)) near the end.
+
+## Repository layout
+
+```
+guides/                 8 deep-dive study guides — the source of truth
+_cram/                  condensed per-domain cram sheets
+AIP-C01-Mock-Exam-1/2/  fact-checked 65-question mock exams (+ per-question analysis)
+AIP-C01-Format-Drills/  ordering & matching practice
+templates/              performance-analysis grading spec
+agents/                 local Strands/Ollama study agents (tutor + verifier)
+website/                RAG chat site: TS frontend, Python backend, Terraform, chunker
+tools/                  consistency_check.py — repo invariants, run by CI
+.github/                CI/CD workflows, templates, CODEOWNERS, Dependabot
+VERIFICATION-LOG.md     point-in-time AWS-fact register (re-verify before exam day)
+CLAUDE.md               editing contract   ·   CHANGELOG.md   ·   CONTRIBUTING.md
+```
+
+Dev loop: `make check` runs everything CI runs (consistency, ruff + prettier, terraform
+validate, frontend build, backend smoke test). See [CONTRIBUTING.md](CONTRIBUTING.md).
 
 ## Maintenance rules
 

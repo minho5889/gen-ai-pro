@@ -1,0 +1,32 @@
+name: Content error
+description: A factual error or stale claim in the study guides, cram sheets, or exams
+labels: [content]
+body:
+  - type: input
+    id: location
+    attributes:
+      label: Where
+      description: File and section/question (e.g. guides/02… §5, or Mock Exam 1 Q16)
+      placeholder: guides/02-RAG-Vector-Stores-Knowledge-Bases.md § Section 5
+    validations:
+      required: true
+  - type: textarea
+    id: claim
+    attributes:
+      label: The claim as written
+      description: Quote the sentence(s) you believe are wrong or stale.
+    validations:
+      required: true
+  - type: textarea
+    id: evidence
+    attributes:
+      label: Why it's wrong — with a source
+      description: Link the AWS doc page (or exam guide) that contradicts it. Claims without sources can't be actioned (repo rule).
+    validations:
+      required: true
+  - type: checkboxes
+    id: freshness
+    attributes:
+      label: Freshness check
+      options:
+        - label: I checked VERIFICATION-LOG.md — this isn't already flagged as point-in-time/unverified

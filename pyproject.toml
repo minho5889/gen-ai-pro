@@ -1,0 +1,25 @@
+[project]
+name = "gen-ai-pro"
+version = "1.0.0"
+description = "AIP-C01 study platform: audited content, local study agents, and a RAG chat site"
+requires-python = ">=3.11"
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+extend-exclude = ["website/frontend"]
+
+[tool.ruff.lint]
+# E/W pycodestyle, F pyflakes, I isort, UP pyupgrade, B bugbear, SIM simplify
+select = ["E", "W", "F", "I", "UP", "B", "SIM"]
+ignore = [
+  "E501", # line length enforced by the formatter where it matters
+]
+
+[tool.ruff.lint.per-file-ignores]
+# The smoke test intentionally stubs modules before importing the app,
+# so import order there is semantic, not cosmetic.
+"website/backend/test_smoke.py" = ["E402", "I001"]
+
+[tool.ruff.format]
+quote-style = "double"

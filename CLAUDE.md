@@ -34,9 +34,10 @@ current. Everything below exists to prevent a recurrence.
 
 ## Before committing
 
-Run `python3 tools/consistency_check.py` (CI runs it too). It checks: question counts,
-select-marker agreement, option-table/answer agreement, relative-link integrity, and banned stale
-phrases. Fix findings rather than suppressing them.
+Run `make check` — it mirrors CI exactly: `tools/consistency_check.py` (question counts,
+select-marker agreement, option-table/answer agreement, link integrity, banned stale phrases),
+ruff lint + format, prettier, `terraform validate`, the frontend build, and the backend smoke
+test. Fix findings rather than suppressing them. `make fmt` auto-formats.
 
 ## Grading answer sheets
 

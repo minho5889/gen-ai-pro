@@ -4,6 +4,7 @@
 Enforces the invariants in CLAUDE.md. Exit 0 = all green; exit 1 = findings
 (printed one per line, prefixed FAIL). Stdlib only. Run from the repo root.
 """
+
 import os
 import re
 import sys
@@ -21,8 +22,18 @@ def read(path):
         return fh.read()
 
 
-SKIP_DIRS = {".git", ".claude", ".github", "tools",
-             "node_modules", "dist", "out", ".terraform", ".build", "__pycache__"}
+SKIP_DIRS = {
+    ".git",
+    ".claude",
+    ".github",
+    "tools",
+    "node_modules",
+    "dist",
+    "out",
+    ".terraform",
+    ".build",
+    "__pycache__",
+}
 
 
 def md_files():
@@ -61,7 +72,7 @@ def check_question_counts_and_markers():
             m = re.match(r"## Question (\d+)(?: \(Select (TWO|THREE)\))?", block)
             if not m:
                 continue
-            body_sels = set(re.findall(r"\(Select (TWO|THREE)[.)]", block[m.end():]))
+            body_sels = set(re.findall(r"\(Select (TWO|THREE)[.)]", block[m.end() :]))
             hdr = m.group(2)
             if hdr and body_sels and body_sels != {hdr}:
                 fail(f"Exam {n} Q{m.group(1)}: header says {hdr}, body says {body_sels}")
@@ -72,7 +83,9 @@ def check_question_counts_and_markers():
 def check_option_tables():
     for n, folder in EXAMS.items():
         adir = f"{folder}/analysis"
-        afiles = sorted(f for f in os.listdir(adir) if re.match(r"AIP-C01_Q\d+-Q\d+_Analysis\.md$", f))
+        afiles = sorted(
+            f for f in os.listdir(adir) if re.match(r"AIP-C01_Q\d+-Q\d+_Analysis\.md$", f)
+        )
         if len(afiles) != 13:
             fail(f"{adir}: expected 13 analysis files, found {len(afiles)}")
         for af in afiles:
@@ -85,7 +98,9 @@ def check_option_tables():
                 letters = set(re.findall(r"[A-F]", am.group(1)))
                 checked = set(re.findall(r"(?m)^- \*\*([A-F])\*\* ✅", block))
                 if checked != letters:
-                    fail(f"Exam {n} {af} Q{qm.group(1)}: answer={sorted(letters)} but ✅={sorted(checked)}")
+                    fail(
+                        f"Exam {n} {af} Q{qm.group(1)}: answer={sorted(letters)} but ✅={sorted(checked)}"
+                    )
 
 
 def check_links():
@@ -95,7 +110,9 @@ def check_links():
             if target.startswith(("http", "#", "mailto:")):
                 continue
             rel = target.split("#")[0]
-            if rel and not os.path.exists(os.path.normpath(os.path.join(os.path.dirname(path), rel))):
+            if rel and not os.path.exists(
+                os.path.normpath(os.path.join(os.path.dirname(path), rel))
+            ):
                 fail(f"{path}: broken link -> {target}")
 
 

@@ -23,6 +23,7 @@ Usage:
   python3 sync_corpus.py --dry-run                    # chunk to ./out, print stats
   python3 sync_corpus.py --bucket B --kb-id K --data-source-id D
 """
+
 import argparse
 import hashlib
 import json
@@ -40,7 +41,11 @@ GUIDES = {  # file -> (strategy_no, topic, primary exam domain)
     "01-Foundation-Models-Bedrock-Core.md": (1, "Foundation Models & Bedrock Core", "d1"),
     "02-RAG-Vector-Stores-Knowledge-Bases.md": (2, "RAG, Vector Stores & Knowledge Bases", "d1"),
     "05-Prompt-Engineering-Management.md": (3, "Prompt Engineering & Management", "d1"),
-    "04-Agentic-AI-Agents-AgentCore-Strands-MCP.md": (4, "Agentic AI: Agents, AgentCore, Strands, MCP", "d2"),
+    "04-Agentic-AI-Agents-AgentCore-Strands-MCP.md": (
+        4,
+        "Agentic AI: Agents, AgentCore, Strands, MCP",
+        "d2",
+    ),
     "08-Enterprise-Integration-Deployment.md": (5, "Enterprise Integration & Deployment", "d2"),
     "03-AI-Safety-Security-Governance.md": (6, "AI Safety, Security & Governance", "d3"),
     "07-Cost-Performance-Monitoring.md": (7, "Cost, Performance & Monitoring", "d4"),
@@ -50,7 +55,9 @@ SKIP_SECTIONS = {"document metadata", "how to use this guide", "table of content
 
 
 def clean(text: str) -> str:
-    text = re.sub(r"```mermaid.*?```", "[architecture diagram - see source guide]", text, flags=re.S)
+    text = re.sub(
+        r"```mermaid.*?```", "[architecture diagram - see source guide]", text, flags=re.S
+    )
     text = re.sub(r"</?(details|summary)>", "", text)
     return text.strip()
 
@@ -66,7 +73,7 @@ def split_headings(text: str, level: int):
         yield None, text[: matches[0].start()]
     for i, m in enumerate(matches):
         end = matches[i + 1].start() if i + 1 < len(matches) else len(text)
-        yield m.group(1).strip(), text[m.end():end]
+        yield m.group(1).strip(), text[m.end() : end]
 
 
 def size_windows(body: str):
@@ -105,7 +112,9 @@ def chunk_file(path: Path, breadcrumb_root: str, meta: dict):
                     chunks[-1] = (prev_key, prev_content + "\n\n" + part.strip(), prev_meta)
                     continue
                 key = f"{path.stem}/{len(chunks):03d}.md"
-                chunks.append((key, content, {**meta, "breadcrumb": crumb + suffix, "section": sec}))
+                chunks.append(
+                    (key, content, {**meta, "breadcrumb": crumb + suffix, "section": sec})
+                )
     return chunks
 
 
@@ -167,8 +176,9 @@ def sync(chunks, bucket, kb_id, ds_id):
             uploaded += 1
     stale = [k for k in existing if k not in desired]
     for i in range(0, len(stale), 1000):
-        s3.delete_objects(Bucket=bucket,
-                          Delete={"Objects": [{"Key": k} for k in stale[i:i + 1000]]})
+        s3.delete_objects(
+            Bucket=bucket, Delete={"Objects": [{"Key": k} for k in stale[i : i + 1000]]}
+        )
     print(f"uploaded/updated {uploaded}, deleted {len(stale)}, unchanged {len(desired) - uploaded}")
 
     agent = boto3.client("bedrock-agent")
@@ -177,8 +187,9 @@ def sync(chunks, bucket, kb_id, ds_id):
     print(f"ingestion job {job_id} started", end="", flush=True)
     while True:
         time.sleep(10)
-        state = agent.get_ingestion_job(knowledgeBaseId=kb_id, dataSourceId=ds_id,
-                                        ingestionJobId=job_id)["ingestionJob"]
+        state = agent.get_ingestion_job(
+            knowledgeBaseId=kb_id, dataSourceId=ds_id, ingestionJobId=job_id
+        )["ingestionJob"]
         status = state["status"]
         print(".", end="", flush=True)
         if status in {"COMPLETE", "FAILED", "STOPPED"}:

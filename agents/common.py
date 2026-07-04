@@ -4,6 +4,7 @@ Everything both agents know about AWS comes from THIS repo's guides and cram
 sheets — the tools below are deliberately section-scoped so a local model with
 a small context window never gets a 40k-word guide dumped into its prompt.
 """
+
 import os
 import re
 from pathlib import Path
@@ -21,7 +22,10 @@ GUIDE_MAP = {
     1: ("Foundation Models & Bedrock Core", "01-Foundation-Models-Bedrock-Core.md"),
     2: ("RAG, Vector Stores & Knowledge Bases", "02-RAG-Vector-Stores-Knowledge-Bases.md"),
     3: ("Prompt Engineering & Management", "05-Prompt-Engineering-Management.md"),
-    4: ("Agentic AI: Agents, AgentCore, Strands, MCP", "04-Agentic-AI-Agents-AgentCore-Strands-MCP.md"),
+    4: (
+        "Agentic AI: Agents, AgentCore, Strands, MCP",
+        "04-Agentic-AI-Agents-AgentCore-Strands-MCP.md",
+    ),
     5: ("Enterprise Integration & Deployment", "08-Enterprise-Integration-Deployment.md"),
     6: ("AI Safety, Security & Governance", "03-AI-Safety-Security-Governance.md"),
     7: ("Cost, Performance & Monitoring", "07-Cost-Performance-Monitoring.md"),
@@ -55,11 +59,15 @@ def list_topics() -> str:
     out = []
     for n, (topic, fname) in GUIDE_MAP.items():
         text = (GUIDES_DIR / fname).read_text(encoding="utf-8")
-        sections = re.findall(r"(?m)^## (?!Document Metadata|How to Use|Table of Contents)(.+)$", text)
+        sections = re.findall(
+            r"(?m)^## (?!Document Metadata|How to Use|Table of Contents)(.+)$", text
+        )
         out.append(f"Guide {n} — {topic} [{fname}]")
         out.extend(f"  - {s.strip()}" for s in sections)
-    out.append("Cram sheets (condensed, one per exam domain): "
-               + ", ".join(sorted(p.name for p in CRAM_DIR.glob("cram-d*.md"))))
+    out.append(
+        "Cram sheets (condensed, one per exam domain): "
+        + ", ".join(sorted(p.name for p in CRAM_DIR.glob("cram-d*.md")))
+    )
     return "\n".join(out)
 
 
@@ -69,8 +77,9 @@ def read_section(file_name: str, heading: str) -> str:
     file_name: exact file name from list_topics (e.g. '02-RAG-Vector-Stores-Knowledge-Bases.md'
     or 'cram-d1.md'). heading: the section title, with or without the leading ##.
     Returns that section's text only — ask for another section if you need more."""
-    path = _guide_path(file_name) or (CRAM_DIR / Path(file_name).name
-                                      if (CRAM_DIR / Path(file_name).name).exists() else None)
+    path = _guide_path(file_name) or (
+        CRAM_DIR / Path(file_name).name if (CRAM_DIR / Path(file_name).name).exists() else None
+    )
     if path is None:
         return f"ERROR: no such file '{file_name}'. Use list_topics() for exact names."
     text = path.read_text(encoding="utf-8")
@@ -80,13 +89,15 @@ def read_section(file_name: str, heading: str) -> str:
         if want in m.group(2).strip().lower():
             level = len(m.group(1))
             end = len(text)
-            for nxt in matches[i + 1:]:
+            for nxt in matches[i + 1 :]:
                 if len(nxt.group(1)) <= level:
                     end = nxt.start()
                     break
-            body = text[m.start():end].strip()
+            body = text[m.start() : end].strip()
             if len(body) > MAX_SECTION_CHARS:
-                body = body[:MAX_SECTION_CHARS] + "\n[...section truncated — ask for a subsection...]"
+                body = (
+                    body[:MAX_SECTION_CHARS] + "\n[...section truncated — ask for a subsection...]"
+                )
             return body
     heads = "\n".join(f"  {m.group(1)} {m.group(2)}" for m in matches[:40])
     return f"ERROR: heading '{heading}' not found in {path.name}. Available headings:\n{heads}"

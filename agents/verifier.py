@@ -17,14 +17,13 @@ Usage:
     python3 agents/verifier.py --mode explain --guide 4
 Type 'q' as an answer to stop and see your scorecard.
 """
+
 import argparse
 import random
 import re
-from pathlib import Path
-
-from strands import Agent
 
 from common import GUIDE_MAP, GUIDES_DIR, REPO_ROOT, local_model
+from strands import Agent
 
 DOMAIN_RANGES = {1: (1, 20), 2: (21, 37), 3: (38, 50), 4: (51, 58), 5: (59, 65)}
 DOMAIN_NAMES = {
@@ -57,7 +56,9 @@ Do not invent facts beyond the ground truth.
 
 def parse_exam(exam_no: str):
     folder = REPO_ROOT / f"AIP-C01-Mock-Exam-{exam_no}"
-    qtext = (folder / "questions" / f"AIP-C01-Mock-Exam-{exam_no}-Questions.md").read_text(encoding="utf-8")
+    qtext = (folder / "questions" / f"AIP-C01-Mock-Exam-{exam_no}-Questions.md").read_text(
+        encoding="utf-8"
+    )
     questions = {}
     for block in re.split(r"(?m)(?=^## Question \d+)", qtext):
         m = re.match(r"## Question (\d+)( \(Select (TWO|THREE)\))?", block)
@@ -86,10 +87,14 @@ def domain_of(qnum: int) -> int:
 def scorecard(results):
     total = len(results)
     right = sum(1 for r in results if r["correct"])
-    print(f"\n{'='*52}\nSCORECARD: {right}/{total} ({right/total*100:.0f}%)" if total else "\nNo questions answered.")
+    print(
+        f"\n{'=' * 52}\nSCORECARD: {right}/{total} ({right / total * 100:.0f}%)"
+        if total
+        else "\nNo questions answered."
+    )
     if not total:
         return
-    print(f"{'='*52}")
+    print(f"{'=' * 52}")
     by_domain = {}
     for r in results:
         by_domain.setdefault(r["domain"], []).append(r["correct"])
@@ -98,14 +103,16 @@ def scorecard(results):
         print(f"  D{d} {DOMAIN_NAMES[d]:<38} {sum(rs)}/{len(rs)}")
     weakest = min(by_domain, key=lambda d: sum(by_domain[d]) / len(by_domain[d]))
     strategy_no = {1: "01/02/03", 2: "04/05", 3: "06", 4: "07", 5: "08"}[weakest]
-    print(f"\nWeakest: D{weakest} — re-study strategy guide(s) {strategy_no} "
-          f"and _cram/cram-d{weakest}.md, then re-drill: "
-          f"python3 agents/verifier.py --domain {weakest}")
+    print(
+        f"\nWeakest: D{weakest} — re-study strategy guide(s) {strategy_no} "
+        f"and _cram/cram-d{weakest}.md, then re-drill: "
+        f"python3 agents/verifier.py --domain {weakest}"
+    )
 
 
 def run_mc(args) -> None:
     bank = []
-    for exam in (["1", "2"] if args.exam == "both" else [args.exam]):
+    for exam in ["1", "2"] if args.exam == "both" else [args.exam]:
         bank += parse_exam(exam)
     if args.domain:
         lo, hi = DOMAIN_RANGES[args.domain]
@@ -113,7 +120,9 @@ def run_mc(args) -> None:
     random.shuffle(bank)
     feedback_model = local_model(temperature=0.2)
     results = []
-    print(f"Drill: {len(bank)} questions available. Answer with letters (e.g. B or ACE). 'q' to stop.\n")
+    print(
+        f"Drill: {len(bank)} questions available. Answer with letters (e.g. B or ACE). 'q' to stop.\n"
+    )
     for q in bank:
         sel = f"  [Select {q['multi']}]" if q["multi"] else ""
         print(f"\n--- Exam {q['exam']} Q{q['num']}{sel} " + "-" * 20)
@@ -124,7 +133,9 @@ def run_mc(args) -> None:
         picked = frozenset(re.findall(r"[A-F]", ans.upper()))
         correct = picked == q["key"]
         results.append({"domain": domain_of(q["num"]), "correct": correct})
-        print(("✅ Correct." if correct else f"❌ Incorrect — credited: {', '.join(sorted(q['key']))}"))
+        print(
+            "✅ Correct." if correct else f"❌ Incorrect — credited: {', '.join(sorted(q['key']))}"
+        )
         # Fresh agent per question: stateless, keeps the local context window small.
         agent = Agent(model=feedback_model, system_prompt=FEEDBACK_PROMPT, callback_handler=None)
         result = agent(
@@ -158,8 +169,10 @@ def run_explain(args) -> None:
         return
     random.shuffle(kcs)
     judge_model = local_model(temperature=0.1)
-    print(f"Free-recall drill — Guide {strategy_no}: {topic}. Explain in your own words; "
-          "blank line submits, 'q' quits.\n")
+    print(
+        f"Free-recall drill — Guide {strategy_no}: {topic}. Explain in your own words; "
+        "blank line submits, 'q' quits.\n"
+    )
     for kc in kcs:
         print("\n--- " + "-" * 40)
         print(kc["question"])
@@ -184,9 +197,15 @@ def run_explain(args) -> None:
 def main() -> None:
     parser = argparse.ArgumentParser(description="AIP-C01 understanding verifier (local model)")
     parser.add_argument("--mode", choices=["mc", "explain"], default="mc")
-    parser.add_argument("--exam", choices=["1", "2", "both"], default="both", help="mc mode: which mock exam")
-    parser.add_argument("--domain", type=int, choices=sorted(DOMAIN_RANGES), help="mc mode: restrict to one domain")
-    parser.add_argument("--guide", type=int, choices=sorted(GUIDE_MAP), help="explain mode: strategy-guide number")
+    parser.add_argument(
+        "--exam", choices=["1", "2", "both"], default="both", help="mc mode: which mock exam"
+    )
+    parser.add_argument(
+        "--domain", type=int, choices=sorted(DOMAIN_RANGES), help="mc mode: restrict to one domain"
+    )
+    parser.add_argument(
+        "--guide", type=int, choices=sorted(GUIDE_MAP), help="explain mode: strategy-guide number"
+    )
     args = parser.parse_args()
     (run_mc if args.mode == "mc" else run_explain)(args)
 
