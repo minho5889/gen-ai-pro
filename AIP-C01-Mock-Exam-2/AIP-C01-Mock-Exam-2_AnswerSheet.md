@@ -219,7 +219,7 @@
 
 ---
 
-## Question 19 (Select TWO)
+## Question 19 (Select THREE)
 - **My Answer:**
 - **Confidence:** High | Medium | Low
 - **Option Reasoning:**
@@ -686,7 +686,7 @@
 
 ---
 
-## Question 57 (Select TWO)
+## Question 57 (Select THREE)
 - **My Answer:**
 - **Confidence:** High | Medium | Low
 - **Option Reasoning:**

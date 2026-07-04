@@ -50,7 +50,7 @@
 
 ---
 
-## Question 5
+## Question 5 (Select THREE)
 - **My Answer:**
 - **Confidence:** High | Medium | Low
 - **Option Reasoning:**
@@ -76,7 +76,7 @@
 
 ---
 
-## Question 7
+## Question 7 (Select TWO)
 - **My Answer:**
 - **Confidence:** High | Medium | Low
 - **Option Reasoning:**
@@ -209,7 +209,7 @@
 
 ---
 
-## Question 18
+## Question 18 (Select TWO)
 - **My Answer:**
 - **Confidence:** High | Medium | Low
 - **Option Reasoning:**
@@ -222,7 +222,7 @@
 
 ---
 
-## Question 19
+## Question 19 (Select THREE)
 - **My Answer:**
 - **Confidence:** High | Medium | Low
 - **Option Reasoning:**

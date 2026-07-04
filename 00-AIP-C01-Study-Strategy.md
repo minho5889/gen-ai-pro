@@ -6,7 +6,7 @@
 |-------|-------|
 | Target Exam | AWS Certified Generative AI Developer - Professional (AIP-C01) |
 | Format | 65 scored + 10 unscored = 75 questions |
-| Question Types | Multiple choice (1 of 4) and multiple response (2+ of 5+) |
+| Question Types | Multiple choice (1 of 4), multiple response (2+ of 5+), ordering (3-5 in sequence), matching (pair to 3-7 prompts) |
 | Scoring | Scaled 100-1000, compensatory model |
 | Passing Score | 750 (higher than the usual 720 — note this) |
 | Level | Professional |

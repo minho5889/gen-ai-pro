@@ -7,7 +7,7 @@ Source: Official AWS Certified Generative AI Developer - Professional (AIP-C01) 
 ## Exam Facts
 
 - 65 scored questions + 10 unscored (75 total)
-- Multiple choice (1 correct of 4) and multiple response (2+ correct of 5+)
+- Four question types: multiple choice (1 correct of 4), multiple response (2+ correct of 5+), ordering (place 3-5 responses in correct order), matching (match responses to 3-7 prompts; all pairs must be correct)
 - Scaled score 100-1000, minimum passing score 750
 - Compensatory scoring (pass overall, not per-domain)
 - Target candidate: 2+ years building production apps on AWS, general AI/ML or data engineering experience, 1 year hands-on GenAI
