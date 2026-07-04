@@ -12,7 +12,7 @@ matching.
    priorities, mental models) against the verified task list in
    [AIP-C01-Exam-Blueprint.md](AIP-C01-Exam-Blueprint.md).
 2. **Learn** — work through the guides in the recommended order; drill each guide's Knowledge Checks.
-3. **Review** — skim the matching cram sheet; (optional) listen via the NotebookLM bundle.
+3. **Review** — skim the matching cram sheet.
 4. **Test** — sit the mock exams, drill the ordering/matching formats, and grade yourself with the
    performance-analysis template.
 5. **Before exam day** — re-verify the fast-moving facts listed in
@@ -44,13 +44,6 @@ items.
 One condensed quick-reference per exam domain — the night-before track: "if the exam says X → answer
 Y → why" tables, top traps, decision rules, hard numbers. `cram-d1.md` … `cram-d5.md`.
 
-## Listen to it — NotebookLM bundle ([_notebooklm/](_notebooklm/))
-
-NotebookLM-optimized copies of the guides (diagrams described in prose, quizzes flattened), split
-into one folder per domain for focused notebooks. See
-[_notebooklm/README.md](_notebooklm/README.md) for the per-domain layout, what NotebookLM can and
-cannot do here, and the sync rule.
-
 ## Test it — mock exams and format drills
 
 - [AIP-C01-Mock-Exam-1/](AIP-C01-Mock-Exam-1/) and [AIP-C01-Mock-Exam-2/](AIP-C01-Mock-Exam-2/) —
@@ -68,14 +61,13 @@ cannot do here, and the sync rule.
 
 ## Suggested study loop
 
-Read a guide → drill its Knowledge Checks → skim the matching cram sheet → (passive) NotebookLM Audio
-Overview → after a few guides, sit a mock-exam slice and grade it with the template → let the
-weak-topic output point you back to the right guide/cram sheet → mix in format drills near the end.
+Read a guide → drill its Knowledge Checks → skim the matching cram sheet → after a few guides, sit a
+mock-exam slice and grade it with the template → let the weak-topic output point you back to the
+right guide/cram sheet → mix in format drills (and the [agents](agents/README.md)) near the end.
 
 ## Maintenance rules
 
-- [guides/](guides/) are the **source of truth**. After editing a guide, regenerate its NotebookLM
-  copy and re-copy it into the affected `by-domain/` folder(s) — copies do not auto-sync. See
+- [guides/](guides/) are the **source of truth** for all study content. See
   [CLAUDE.md](CLAUDE.md) for the full editing contract.
 - Every fast-moving fact carries a *(point-in-time)* flag in the text and a row in
   [VERIFICATION-LOG.md](VERIFICATION-LOG.md) with its source and last-verified date. Re-verify before

@@ -5,17 +5,13 @@ markdown, no build. The failure mode that matters here is **silent inconsistency
 drifting from sources, answer keys disagreeing with option tables, stale AWS facts asserted as
 current. Everything below exists to prevent a recurrence.
 
-## Source-of-truth and propagation rules
+## Source-of-truth rules
 
-- `guides/*.md` are the source of truth. `_notebooklm/by-domain/*/` holds **derived, transformed
-  copies** (Mermaid diagrams rewritten as "Diagram (described)" prose; `<details>` quizzes flattened
-  to Q:/A:). After editing a guide, apply the equivalent edit to its by-domain copy (or regenerate
-  the transform). Guide→folder map: 01→d1 **and** d2 · 02→d1 · 03→d3 · 04→d2 · 05→d1 · 06→d5 ·
-  07→d4 · 08→d2.
-- `_cram/cram-dN.md` and `AIP-C01-Exam-Blueprint.md` are copied **byte-identical** into by-domain
-  folders (blueprint into all five). After editing, `cp` them over; the checker diffs them.
+- `guides/*.md` are the source of truth for all study content; `_cram/*.md` are their condensed
+  companions. There are no derived copies to keep in sync (the NotebookLM bundle was removed in
+  July 2026).
 - Do **not** rename the guide files to match strategy numbering — the mapping table in README.md is
-  canonical; renames would break NotebookLM notebooks users already uploaded and every cross-link.
+  canonical, and renames would break cross-links in the exams, cram sheets, agents, and drills.
 
 ## Exam-content invariants (checker-enforced)
 
@@ -39,8 +35,8 @@ current. Everything below exists to prevent a recurrence.
 ## Before committing
 
 Run `python3 tools/consistency_check.py` (CI runs it too). It checks: question counts,
-select-marker agreement, option-table/answer agreement, relative-link integrity, identical-copy
-invariants, and banned stale phrases. Fix findings rather than suppressing them.
+select-marker agreement, option-table/answer agreement, relative-link integrity, and banned stale
+phrases. Fix findings rather than suppressing them.
 
 ## Grading answer sheets
 

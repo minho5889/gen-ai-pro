@@ -122,83 +122,12 @@ def check_banned_strings():
                     fail(f"{path}:{i}: banned stale string {b!r}")
 
 
-IDENTICAL = [
-    ("_cram/cram-d1.md", "_notebooklm/by-domain/d1-foundation-data-compliance/cram-d1.md"),
-    ("_cram/cram-d2.md", "_notebooklm/by-domain/d2-implementation-integration/cram-d2.md"),
-    ("_cram/cram-d3.md", "_notebooklm/by-domain/d3-safety-security-governance/cram-d3.md"),
-    ("_cram/cram-d4.md", "_notebooklm/by-domain/d4-operational-efficiency/cram-d4.md"),
-    ("_cram/cram-d5.md", "_notebooklm/by-domain/d5-testing-validation-troubleshooting/cram-d5.md"),
-] + [
-    ("AIP-C01-Exam-Blueprint.md", f"_notebooklm/by-domain/{d}/AIP-C01-Exam-Blueprint.md")
-    for d in [
-        "d1-foundation-data-compliance",
-        "d2-implementation-integration",
-        "d3-safety-security-governance",
-        "d4-operational-efficiency",
-        "d5-testing-validation-troubleshooting",
-    ]
-]
-
-
-def check_identical_copies():
-    for src, copy in IDENTICAL:
-        if not os.path.exists(copy):
-            fail(f"missing copy: {copy}")
-        elif read(src) != read(copy):
-            fail(f"copy drifted from source: {copy} != {src}")
-
-
-# Every guide edit must reach its transformed by-domain copies. Transforms
-# preclude a byte-diff, so enforce presence + a same-section-count heuristic.
-GUIDE_COPIES = {
-    "guides/01-Foundation-Models-Bedrock-Core.md": [
-        "_notebooklm/by-domain/d1-foundation-data-compliance/01-Foundation-Models-Bedrock-Core.md",
-        "_notebooklm/by-domain/d2-implementation-integration/01-Foundation-Models-Bedrock-Core.md",
-    ],
-    "guides/02-RAG-Vector-Stores-Knowledge-Bases.md": [
-        "_notebooklm/by-domain/d1-foundation-data-compliance/02-RAG-Vector-Stores-Knowledge-Bases.md",
-    ],
-    "guides/03-AI-Safety-Security-Governance.md": [
-        "_notebooklm/by-domain/d3-safety-security-governance/03-AI-Safety-Security-Governance.md",
-    ],
-    "guides/04-Agentic-AI-Agents-AgentCore-Strands-MCP.md": [
-        "_notebooklm/by-domain/d2-implementation-integration/04-Agentic-AI-Agents-AgentCore-Strands-MCP.md",
-    ],
-    "guides/05-Prompt-Engineering-Management.md": [
-        "_notebooklm/by-domain/d1-foundation-data-compliance/05-Prompt-Engineering-Management.md",
-    ],
-    "guides/06-Testing-Evaluation-Troubleshooting.md": [
-        "_notebooklm/by-domain/d5-testing-validation-troubleshooting/06-Testing-Evaluation-Troubleshooting.md",
-    ],
-    "guides/07-Cost-Performance-Monitoring.md": [
-        "_notebooklm/by-domain/d4-operational-efficiency/07-Cost-Performance-Monitoring.md",
-    ],
-    "guides/08-Enterprise-Integration-Deployment.md": [
-        "_notebooklm/by-domain/d2-implementation-integration/08-Enterprise-Integration-Deployment.md",
-    ],
-}
-
-
-def check_guide_copies():
-    for src, copies in GUIDE_COPIES.items():
-        src_sections = re.findall(r"(?m)^## Section \d+", read(src))
-        for copy in copies:
-            if not os.path.exists(copy):
-                fail(f"missing transformed copy: {copy}")
-                continue
-            copy_sections = re.findall(r"(?m)^## Section \d+", read(copy))
-            if len(src_sections) != len(copy_sections):
-                fail(f"{copy}: section count {len(copy_sections)} != source {len(src_sections)}")
-
-
 def main():
     os.chdir(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
     check_question_counts_and_markers()
     check_option_tables()
     check_links()
     check_banned_strings()
-    check_identical_copies()
-    check_guide_copies()
     if FAILURES:
         print(f"\n{len(FAILURES)} finding(s).")
         sys.exit(1)
