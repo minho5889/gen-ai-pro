@@ -10,6 +10,20 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  # PR titles become squash-merge commits — lint them against the
+  # Conventional Commits grammar in ENGINEERING-STANDARD.md §2.
+  pr-title:
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    env:
+      TITLE: ${{ github.event.pull_request.title }}
+    steps:
+      - name: Validate conventional-commit title
+        run: |
+          echo "PR title: $TITLE"
+          echo "$TITLE" | grep -qE '^(feat|fix|content|infra|docs|test|refactor|chore)(\([a-z0-9._/-]+\))?!?: .{1,72}$' \
+            || { echo "::error::PR title must match 'type(scope): subject' (see ENGINEERING-STANDARD.md §2)"; exit 1; }
+
   content:
     runs-on: ubuntu-latest
     steps:

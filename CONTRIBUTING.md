@@ -1,6 +1,10 @@
 # Contributing
 
-Solo-maintained, but run like a team repo: every change goes through the same checks.
+Solo-maintained, but run like a team repo: every change goes through the same checks, inside the
+paved road defined in [ENGINEERING-STANDARD.md](ENGINEERING-STANDARD.md) — trunk-based branches
+(`type/short-slug` off `main`), Conventional Commit messages (`type(scope): subject`; PR titles
+are linted since squash-merge makes them the commit), and the fixed stack (AWS/Lambda/Terraform/
+Strands/GitHub). Deviations need a decision record first.
 
 ## Dev setup
 

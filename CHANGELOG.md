@@ -3,6 +3,14 @@
 Notable changes, [Keep a Changelog](https://keepachangelog.com/) style. Dates are commit dates;
 hashes are the landing commits.
 
+## 2026-07-07 — The paved road
+
+- ENGINEERING-STANDARD.md: the single authoritative layer — fixed stack (AWS-native, Python
+  Lambda, Terraform, Strands, GitHub), trunk-based branching, Conventional Commits (PR titles
+  linted in CI), FCIS development style, OIDC-only deployment, deviation-by-decision-record
+- Functional core / imperative shell refactor of the logic-dense trio with 25 behavior-locking
+  unit tests; Google docstrings enforced repo-wide (`90c77b4`)
+
 ## 2026-07-06 — Engineering hygiene & CI/CD
 
 - CI/CD per [website/CICD-SPEC.md](website/CICD-SPEC.md): check suite on every push/PR (zero AWS

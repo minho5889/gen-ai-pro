@@ -82,8 +82,13 @@ website/                RAG chat site: TS frontend, Python backend, Terraform, c
 tools/                  consistency_check.py — repo invariants, run by CI
 .github/                CI/CD workflows, templates, CODEOWNERS, Dependabot
 VERIFICATION-LOG.md     point-in-time AWS-fact register (re-verify before exam day)
+ENGINEERING-STANDARD.md the paved road — stack + workflow, decided once
 CLAUDE.md               editing contract   ·   CHANGELOG.md   ·   CONTRIBUTING.md
 ```
+
+All engineering happens inside the paved road defined in
+[ENGINEERING-STANDARD.md](ENGINEERING-STANDARD.md): AWS-native + Python Lambda + Terraform +
+Strands + GitHub, trunk-based branches, Conventional Commits, FCIS style, OIDC-only deploys.
 
 Dev loop: `make check` runs everything CI runs (consistency, ruff + prettier, terraform
 validate, frontend build, backend smoke test). See [CONTRIBUTING.md](CONTRIBUTING.md).

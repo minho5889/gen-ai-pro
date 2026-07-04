@@ -1,9 +1,12 @@
 # CLAUDE.md — editing contract for this repo
 
-Exam-prep content repo for AWS Certified Generative AI Developer – Professional (AIP-C01). All
-markdown, no build. The failure mode that matters here is **silent inconsistency** — derived copies
-drifting from sources, answer keys disagreeing with option tables, stale AWS facts asserted as
-current. Everything below exists to prevent a recurrence.
+AIP-C01 study platform: audited content, study agents, and a deployed RAG chat site. All work
+follows the paved road in [ENGINEERING-STANDARD.md](ENGINEERING-STANDARD.md) — fixed stack
+(AWS-native, Python Lambda, Terraform, Strands, GitHub), trunk-based branching, and
+**Conventional Commit messages**: `type(scope): imperative subject` with types
+feat/fix/content/infra/docs/test/refactor/chore. The failure mode that matters here is **silent
+inconsistency** — answer keys disagreeing with option tables, stale AWS facts asserted as current,
+conventions that exist only in prose. Everything below exists to prevent a recurrence.
 
 ## Source-of-truth rules
 
