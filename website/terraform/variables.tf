@@ -31,11 +31,18 @@ variable "embedding_dimensions" {
 variable "lambda_web_adapter_layer_arn" {
   description = <<-EOT
     AWS Lambda Web Adapter public layer (enables response streaming from a
-    Python Lambda). Region/version drift: check the latest at
+    Python Lambda). Empty = derived for var.region automatically. Version
+    drift: check the latest at
     https://github.com/awslabs/aws-lambda-web-adapter#lambda-functions-packaged-as-zip-package-for-aws-managed-runtimes
   EOT
   type        = string
-  default     = "arn:aws:lambda:us-east-1:753240598075:layer:LambdaAdapterLayerX86:25"
+  default     = ""
+}
+
+variable "lambda_web_adapter_layer_version" {
+  description = "Layer version used when lambda_web_adapter_layer_arn is empty"
+  type        = number
+  default     = 25
 }
 
 variable "chat_max_tokens" {

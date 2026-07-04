@@ -1,5 +1,7 @@
 locals {
   kb_arn = "arn:aws:bedrock:${var.region}:${data.aws_caller_identity.me.account_id}:knowledge-base/${awscc_bedrock_knowledge_base.study.knowledge_base_id}"
+  # Public layer lives per-region under the awslabs account; must match var.region.
+  adapter_layer_arn = var.lambda_web_adapter_layer_arn != "" ? var.lambda_web_adapter_layer_arn : "arn:aws:lambda:${var.region}:753240598075:layer:LambdaAdapterLayerX86:${var.lambda_web_adapter_layer_version}"
 }
 
 data "archive_file" "chat" {
@@ -65,7 +67,7 @@ resource "aws_lambda_function" "chat" {
 
   # The adapter layer is what gives a *Python* function true response
   # streaming (natively that's a Node-only Lambda feature).
-  layers = [var.lambda_web_adapter_layer_arn]
+  layers = [local.adapter_layer_arn]
 
   environment {
     variables = {

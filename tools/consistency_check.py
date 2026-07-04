@@ -21,9 +21,13 @@ def read(path):
         return fh.read()
 
 
+SKIP_DIRS = {".git", ".claude", ".github", "tools",
+             "node_modules", "dist", "out", ".terraform", ".build", "__pycache__"}
+
+
 def md_files():
     for root, dirs, files in os.walk("."):
-        dirs[:] = [d for d in dirs if d not in {".git", ".claude", ".github", "tools"}]
+        dirs[:] = [d for d in dirs if d not in SKIP_DIRS]
         for f in files:
             if f.endswith(".md"):
                 yield os.path.join(root, f)

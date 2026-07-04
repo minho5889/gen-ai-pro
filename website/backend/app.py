@@ -123,7 +123,11 @@ class Handler(BaseHTTPRequestHandler):
         self.send_header("Content-Type", "text/event-stream; charset=utf-8")
         self.send_header("Cache-Control", "no-cache")
         self.send_header("X-Accel-Buffering", "no")
+        # Streaming body has no Content-Length; close the connection to mark
+        # end-of-stream (otherwise HTTP/1.1 keep-alive leaves clients hanging).
+        self.send_header("Connection", "close")
         self.end_headers()
+        self.close_connection = True
 
         try:
             context_block, sources, retrieval_ms = retrieve(message)

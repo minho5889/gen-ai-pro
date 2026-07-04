@@ -17,7 +17,7 @@ const inputEl = document.getElementById("input") as HTMLInputElement;
 const sendEl = document.getElementById("send") as HTMLButtonElement;
 const ttftEl = document.getElementById("ttft") as HTMLElement;
 
-const history: Turn[] = [];
+const turns: Turn[] = [];
 let busy = false;
 
 function addMessage(role: Role): { bubble: HTMLElement; meta: HTMLElement } {
@@ -84,7 +84,7 @@ async function send(message: string): Promise<void> {
     const res = await fetch("/chat", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ message, history }),
+      body: JSON.stringify({ message, history: turns }),
     });
     if (!res.ok || !res.body) throw new Error(`HTTP ${res.status}`);
 
@@ -111,8 +111,8 @@ async function send(message: string): Promise<void> {
           throw new Error(data.message as string);
       }
     }
-    history.push({ role: "user", text: message }, { role: "assistant", text });
-    if (history.length > 16) history.splice(0, history.length - 16);
+    turns.push({ role: "user", text: message }, { role: "assistant", text });
+    if (turns.length > 16) turns.splice(0, turns.length - 16);
   } catch (err) {
     bubble.textContent = text || `Something went wrong: ${(err as Error).message}`;
     bubble.classList.add("error");
