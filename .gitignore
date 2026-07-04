@@ -2,3 +2,12 @@
 .claude/settings.local.json
 .claude/scheduled_tasks.lock
 __pycache__/
+
+# website build/deploy artifacts
+website/terraform/.terraform/
+website/terraform/.terraform.lock.hcl
+website/terraform/terraform.tfstate*
+website/terraform/.build/
+website/frontend/node_modules/
+website/frontend/dist/
+website/scripts/out/
