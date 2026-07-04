@@ -33,6 +33,9 @@ but of a kind that drifts: quotas, prices, region lists, service status).
 | 22 | S3 Vectors ≈90% cheaper, sub-second query | 🕐 | AWS launch materials | 2026-07-03 | guide 02, cram-d1 |
 | 23 | AWS Agent Squad relocated to `2fastlabs` org | ⚠️ | could not confirm from AWS sources (guide flags it) | 2026-07-03 | guide 04 |
 | 24 | STS default ~500 AssumeRole/s per account | 🕐 | STS quotas | 2026-07-03 | guide 08, cram-d2 |
+| 25 | Nova 2 Lite: SFT + RFT supported on Bedrock; RFT ~66% avg accuracy gain claim | ✅🕐 | Bedrock RFT docs + AWS blog | 2026-07-06 | website/FEASIBILITY.md |
+| 26 | Customized Nova models serve via **on-demand at base-model token pricing** (PEFT models compatible with on-demand + PT) | ✅🕐 | AWS Nova customization blog/docs | 2026-07-06 | website/FEASIBILITY.md |
+| 27 | Nova 2 Lite ≈ $0.30/M in, $2.50/M out; reasoning-mode TTFT ~19 s at medium vs interactive-fast defaults | 🕐 | third-party trackers + Artificial Analysis | 2026-07-06 | website/FEASIBILITY.md |
 
 ## How to re-verify (the loop)
 
