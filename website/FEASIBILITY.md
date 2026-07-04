@@ -75,6 +75,26 @@ hundreds/month and the recommendation would flip to "don't fine-tune at all."
    drilling should keep its deterministic scorer (port `verifier.py`'s logic to the backend, don't
    let the LLM grade).
 
+## Cloud choice: AWS/Nova vs GCP/Gemini Flash (decided 2026-07-06)
+
+**Decision: AWS + Nova 2 Lite.** Head-to-head (all 🕐 point-in-time):
+
+| Axis | AWS / Nova 2 Lite | GCP / Gemini 3 Flash | Winner |
+|---|---|---|---|
+| Base price /M tokens | ~$0.30 in / $2.50 out | ~$0.50 in / $3.00 out (preview) | AWS |
+| **Fine-tuned serving** | on-demand at **1.0×** base price | tuned endpoints at **1.5×** base price | AWS — decisive for a fine-tune plan |
+| Raw model capability | good | likely stronger | GCP |
+| Free prototyping tier | limited | generous (Gemini API) | GCP |
+| Builder's existing skills | full AWS cert catalog, AWS career | new platform from scratch | AWS |
+| Project's second job | building it **is** AIP-C01 prep (KB RAG, Nova customization = Domain 1/2 tasks) | teaches the wrong exam | AWS |
+
+Note: a Google One AI Pro subscription is the consumer Gemini app — it provides no Vertex AI
+credits; GCP inference would be billed separately regardless. Keep the consumer subscription as a
+*study tool* (Gems/voice tutoring) — using an app isn't a cloud-strategy violation; infrastructure
+is. **Flip condition:** if Phase 1 evals show Nova 2 Lite quality is unacceptable for tutoring,
+re-benchmark before Phase 3 — swapping the model in a Strands/Converse abstraction is cheap; leaving
+the cloud is not.
+
 ## Phased plan
 
 1. **Phase 1 — site + grounded chat (a weekend):** static chat UI, Lambda streaming relay, base Nova
