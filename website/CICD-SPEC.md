@@ -17,9 +17,10 @@ AWS credentials; $0/month (public repo → unlimited Actions minutes).
 | Job | What it runs | Needs AWS? |
 |---|---|---|
 | content | `tools/consistency_check.py` (absorbs today's `consistency.yml`) | no |
+| lint | ruff check + format-check (Google docstring convention enforced) | no |
 | terraform | `fmt -check` + `init -backend=false` + `validate` | no |
-| frontend | `npm ci && npm run build` (tsc strict + Vite) | no |
-| backend | `backend/test_smoke.py` — the stubbed-boto3 SSE contract test (health, 400, meta→tokens→done, clean close) | no |
+| frontend | `npm ci`, prettier check, `npm run build` (tsc strict + Vite) | no |
+| tests | `pytest tests/` (functional-core units) + `backend/test_smoke.py` (SSE contract: health, 400, meta→tokens→done, clean close) | no |
 
 Property worth keeping: **CI needs zero AWS access**, so fork PRs and feature branches are safe by
 construction. Concurrency: cancel-in-progress per branch.

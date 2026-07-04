@@ -38,6 +38,7 @@ Method — follow strictly:
 
 
 def main() -> None:
+    """Run the tutoring REPL until the student quits."""
     parser = argparse.ArgumentParser(description="Socratic AIP-C01 tutor (local model)")
     parser.add_argument("--topic", help="start the session on this topic")
     args = parser.parse_args()

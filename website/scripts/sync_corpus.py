@@ -1,27 +1,25 @@
 #!/usr/bin/env python3
 """Section-aware chunker + corpus sync + batched Knowledge Base ingestion.
 
-Chunking strategy (why NONE + pre-chunking beats the built-ins here):
-  The corpus is textbook markdown with a strong heading hierarchy. We split on
-  that hierarchy (## sections, ### subsections) so every chunk is one coherent
-  teaching unit, then:
-    - prepend a breadcrumb header ("Guide 2 - RAG... >> Section 5 >> Hybrid
-      Search") so the embedding carries its own context — markedly better
-      retrieval than naked mid-document text;
-    - replace Mermaid blocks with a placeholder (diagram code embeds as noise);
-    - flatten <details> quiz markup (Q&A text embeds well, tags don't);
-    - keep chunks 60-600 words: oversized sections split at paragraph
-      boundaries with one-paragraph overlap, fragments merged forward;
-    - write a .metadata.json sidecar per chunk (guide/domain/type filterable,
-      breadcrumb/source_file for display) for future filtered retrieval.
-  Bedrock ingests with chunking_strategy=NONE: our chunks land as-is.
+Architecture: functional core / imperative shell. The core (``clean`` through
+``build_chunks``) is pure — text in, chunks out — and unit-tested in
+``tests/test_sync_corpus.py``. The shell (``load_documents``, ``dry_run``,
+``sync``, ``main``) owns every file read, S3 call, and ingestion poll.
 
-Ingestion is batched: one StartIngestionJob per sync run — never per file
-(see guide 02's buffer-and-orchestrate pattern; ingestion is job-based).
+Chunking strategy (why NONE + pre-chunking beats the built-ins here): the
+corpus is textbook markdown with a strong heading hierarchy, so we split on
+that hierarchy (## sections, ### subsections), prepend a breadcrumb header so
+each embedding carries its own context, strip Mermaid noise, keep chunks
+60-600 words (paragraph-boundary splits with one-paragraph overlap, fragments
+merged forward), and emit a metadata sidecar per chunk. Bedrock ingests with
+chunking_strategy=NONE — our chunks land as-is.
+
+Ingestion is batched: one StartIngestionJob per sync run, never per file
+(guide 02's buffer-and-orchestrate lesson; ingestion is job-based).
 
 Usage:
-  python3 sync_corpus.py --dry-run                    # chunk to ./out, print stats
-  python3 sync_corpus.py --bucket B --kb-id K --data-source-id D
+    python3 sync_corpus.py --dry-run
+    python3 sync_corpus.py --bucket B --kb-id K --data-source-id D
 """
 
 import argparse
@@ -53,8 +51,21 @@ GUIDES = {  # file -> (strategy_no, topic, primary exam domain)
 }
 SKIP_SECTIONS = {"document metadata", "how to use this guide", "table of contents"}
 
+# --------------------------- functional core ---------------------------------
+
 
 def clean(text: str) -> str:
+    """Strip markup that embeds as noise.
+
+    Mermaid code blocks become a placeholder and ``<details>``/``<summary>``
+    tags are removed (their text content stays — Q&A pairs embed well).
+
+    Args:
+        text: Raw markdown.
+
+    Returns:
+        Markdown ready for chunking.
+    """
     text = re.sub(
         r"```mermaid.*?```", "[architecture diagram - see source guide]", text, flags=re.S
     )
@@ -63,7 +74,17 @@ def clean(text: str) -> str:
 
 
 def split_headings(text: str, level: int):
-    """Yield (heading, body) at the given heading level; body excludes deeper splits."""
+    """Split markdown at one heading level.
+
+    Args:
+        text: Markdown to split.
+        level: Heading level (2 for ``##``, 3 for ``###``).
+
+    Yields:
+        ``(heading, body)`` tuples in document order. A leading body before the
+        first heading (or the whole text when no headings exist) yields with
+        ``heading=None``. Bodies include any deeper-level headings.
+    """
     pattern = re.compile(rf"(?m)^{'#' * level} (.+)$")
     matches = list(pattern.finditer(text))
     if not matches:
@@ -76,8 +97,18 @@ def split_headings(text: str, level: int):
         yield m.group(1).strip(), text[m.end() : end]
 
 
-def size_windows(body: str):
-    """Split an oversized body at paragraph boundaries with 1-para overlap."""
+def size_windows(body: str) -> list[str]:
+    """Split an oversized body at paragraph boundaries.
+
+    Consecutive windows overlap by one paragraph so no idea is orphaned at a
+    boundary.
+
+    Args:
+        body: Section text exceeding ``MAX_WORDS``.
+
+    Returns:
+        Window strings, each targeting ``TARGET_WORDS``.
+    """
     paras = [p for p in re.split(r"\n\s*\n", body) if p.strip()]
     windows, cur, cur_words = [], [], 0
     for p in paras:
@@ -92,10 +123,21 @@ def size_windows(body: str):
     return windows
 
 
-def chunk_file(path: Path, breadcrumb_root: str, meta: dict):
-    text = clean(path.read_text(encoding="utf-8"))
+def chunk_document(doc_id: str, text: str, breadcrumb_root: str, meta: dict) -> list[tuple]:
+    """Chunk one document into breadcrumbed, retrieval-sized units.
+
+    Args:
+        doc_id: Stable identifier used as the S3 key prefix (e.g. file stem).
+        text: Raw markdown of the document.
+        breadcrumb_root: Human-readable document name for breadcrumb headers.
+        meta: Base metadata attached to every chunk (source_file/guide/domain/type).
+
+    Returns:
+        ``(key, content, metadata)`` tuples; ``content`` starts with the
+        breadcrumb line, ``metadata`` extends ``meta`` with breadcrumb/section.
+    """
     chunks = []
-    for sec, sec_body in split_headings(text, 2):
+    for sec, sec_body in split_headings(clean(text), 2):
         if sec is None or sec.strip().lower() in SKIP_SECTIONS:
             continue
         for sub, body in split_headings(sec_body, 3):
@@ -111,50 +153,118 @@ def chunk_file(path: Path, breadcrumb_root: str, meta: dict):
                     prev_key, prev_content, prev_meta = chunks[-1]
                     chunks[-1] = (prev_key, prev_content + "\n\n" + part.strip(), prev_meta)
                     continue
-                key = f"{path.stem}/{len(chunks):03d}.md"
+                key = f"{doc_id}/{len(chunks):03d}.md"
                 chunks.append(
                     (key, content, {**meta, "breadcrumb": crumb + suffix, "section": sec})
                 )
     return chunks
 
 
-def build_corpus():
+def build_chunks(documents: list[tuple]) -> list[tuple]:
+    """Chunk every document in the corpus.
+
+    Args:
+        documents: ``(doc_id, text, breadcrumb_root, meta)`` tuples, e.g. from
+            ``load_documents``.
+
+    Returns:
+        Concatenated ``(key, content, metadata)`` chunk tuples.
+    """
     chunks = []
-    for fname, (no, topic, domain) in GUIDES.items():
-        meta = {"source_file": fname, "guide": no, "domain": domain, "type": "guide"}
-        chunks += chunk_file(REPO / "guides" / fname, f"Guide {no} - {topic}", meta)
-    for cram in sorted((REPO / "_cram").glob("cram-d*.md")):
-        domain = cram.stem.split("-")[1]
-        meta = {"source_file": cram.name, "guide": 0, "domain": domain, "type": "cram"}
-        chunks += chunk_file(cram, f"Cram sheet {domain.upper()}", meta)
-    bp = REPO / "AIP-C01-Exam-Blueprint.md"
-    meta = {"source_file": bp.name, "guide": 0, "domain": "all", "type": "blueprint"}
-    chunks += chunk_file(bp, "Official Exam Blueprint", meta)
+    for doc_id, text, root, meta in documents:
+        chunks += chunk_document(doc_id, text, root, meta)
     return chunks
 
 
 def sidecar(meta: dict) -> str:
-    return json.dumps({"metadataAttributes": {k: v for k, v in meta.items()}})
+    """Render a chunk's Bedrock KB metadata sidecar.
+
+    Args:
+        meta: Chunk metadata attributes.
+
+    Returns:
+        JSON body for the ``<key>.metadata.json`` object.
+    """
+    return json.dumps({"metadataAttributes": dict(meta)})
 
 
-def dry_run(chunks):
+def stats(chunks: list[tuple]) -> str:
+    """Summarize a chunk set for humans.
+
+    Args:
+        chunks: ``(key, content, metadata)`` tuples.
+
+    Returns:
+        Multi-line summary (count, word distribution, type breakdown).
+    """
+    words = sorted(len(c.split()) for _, c, _ in chunks)
+    by_type: dict[str, int] = {}
+    for _, _, m in chunks:
+        by_type[m["type"]] = by_type.get(m["type"], 0) + 1
+    return (
+        f"{len(chunks)} chunks\n"
+        f"words/chunk: min {words[0]}, median {words[len(words) // 2]}, max {words[-1]}\n"
+        f"by type: {by_type}"
+    )
+
+
+# --------------------------- imperative shell --------------------------------
+
+
+def load_documents() -> list[tuple]:
+    """Read the corpus from the repo.
+
+    Returns:
+        ``(doc_id, text, breadcrumb_root, meta)`` tuples for guides, cram
+        sheets, and the exam blueprint.
+    """
+    docs = []
+    for fname, (no, topic, domain) in GUIDES.items():
+        path = REPO / "guides" / fname
+        meta = {"source_file": fname, "guide": no, "domain": domain, "type": "guide"}
+        docs.append((path.stem, path.read_text(encoding="utf-8"), f"Guide {no} - {topic}", meta))
+    for cram in sorted((REPO / "_cram").glob("cram-d*.md")):
+        domain = cram.stem.split("-")[1]
+        meta = {"source_file": cram.name, "guide": 0, "domain": domain, "type": "cram"}
+        docs.append(
+            (cram.stem, cram.read_text(encoding="utf-8"), f"Cram sheet {domain.upper()}", meta)
+        )
+    bp = REPO / "AIP-C01-Exam-Blueprint.md"
+    meta = {"source_file": bp.name, "guide": 0, "domain": "all", "type": "blueprint"}
+    docs.append((bp.stem, bp.read_text(encoding="utf-8"), "Official Exam Blueprint", meta))
+    return docs
+
+
+def dry_run(chunks: list[tuple]) -> None:
+    """Write chunks to ``./out`` for inspection and print stats.
+
+    Args:
+        chunks: ``(key, content, metadata)`` tuples.
+    """
     out = Path(__file__).parent / "out"
     for key, content, meta in chunks:
         p = out / key
         p.parent.mkdir(parents=True, exist_ok=True)
         p.write_text(content, encoding="utf-8")
         (out / (key + ".metadata.json")).write_text(sidecar(meta), encoding="utf-8")
-    words = sorted(len(c.split()) for _, c, _ in chunks)
-    mid = words[len(words) // 2]
-    print(f"{len(chunks)} chunks -> {out}")
-    print(f"words/chunk: min {words[0]}, median {mid}, max {words[-1]}")
-    by_type = {}
-    for _, _, m in chunks:
-        by_type[m["type"]] = by_type.get(m["type"], 0) + 1
-    print(f"by type: {by_type}")
+    print(f"-> {out}\n{stats(chunks)}")
 
 
-def sync(chunks, bucket, kb_id, ds_id):
+def sync(chunks: list[tuple], bucket: str, kb_id: str, ds_id: str) -> None:
+    """Diff-upload chunks to S3 and run one batched ingestion job.
+
+    Uploads only changed objects (md5 vs ETag), deletes stale keys, then
+    starts a single StartIngestionJob and polls it to completion.
+
+    Args:
+        chunks: ``(key, content, metadata)`` tuples.
+        bucket: Corpus S3 bucket name.
+        kb_id: Bedrock Knowledge Base id.
+        ds_id: Data source id within the knowledge base.
+
+    Raises:
+        SystemExit: If the ingestion job ends in a non-COMPLETE state.
+    """
     import boto3
 
     s3 = boto3.client("s3")
@@ -199,7 +309,8 @@ def sync(chunks, bucket, kb_id, ds_id):
             return
 
 
-def main():
+def main() -> None:
+    """Parse arguments and run a dry-run or a full sync."""
     ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     ap.add_argument("--dry-run", action="store_true", help="chunk locally to ./out, no AWS calls")
     ap.add_argument("--bucket")
@@ -207,7 +318,7 @@ def main():
     ap.add_argument("--data-source-id")
     args = ap.parse_args()
 
-    chunks = build_corpus()
+    chunks = build_chunks(load_documents())
     if args.dry_run:
         dry_run(chunks)
         return

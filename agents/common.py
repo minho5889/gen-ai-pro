@@ -36,9 +36,17 @@ MAX_SECTION_CHARS = 6000
 
 
 def local_model(temperature: float = 0.7) -> OllamaModel:
-    """Locally served model via Ollama. Override with env vars:
-    OLLAMA_HOST (default http://localhost:11434) and
-    AIP_AGENT_MODEL (default qwen3:8b — needs tool-calling support)."""
+    """Build the locally served Ollama model both agents run on.
+
+    Environment overrides: ``OLLAMA_HOST`` (default http://localhost:11434)
+    and ``AIP_AGENT_MODEL`` (default qwen3:8b — needs tool-calling support).
+
+    Args:
+        temperature: Sampling temperature for the agent's model.
+
+    Returns:
+        A configured Strands OllamaModel.
+    """
     return OllamaModel(
         host=os.getenv("OLLAMA_HOST", "http://localhost:11434"),
         model_id=os.getenv("AIP_AGENT_MODEL", "qwen3:8b"),
@@ -53,9 +61,15 @@ def _guide_path(file_name: str) -> Path | None:
 
 @tool
 def list_topics() -> str:
-    """Map of the study material: every guide file with its top-level sections,
-    plus the cram sheets. Call this first to see what exists and get exact
-    file names and section headings for read_section()."""
+    """Map the study material: every guide file with its top-level sections.
+
+    Call this first to see what exists and get exact file names and section
+    headings for read_section(). Cram sheets are listed at the end.
+
+    Returns:
+        One line per guide ("Guide N — Topic [file]") with its sections
+        indented beneath, then the cram-sheet file names.
+    """
     out = []
     for n, (topic, fname) in GUIDE_MAP.items():
         text = (GUIDES_DIR / fname).read_text(encoding="utf-8")
@@ -74,9 +88,17 @@ def list_topics() -> str:
 @tool
 def read_section(file_name: str, heading: str) -> str:
     """Read ONE section of a guide or cram sheet by its heading text.
-    file_name: exact file name from list_topics (e.g. '02-RAG-Vector-Stores-Knowledge-Bases.md'
-    or 'cram-d1.md'). heading: the section title, with or without the leading ##.
-    Returns that section's text only — ask for another section if you need more."""
+
+    Args:
+        file_name: Exact file name from list_topics, e.g.
+            '02-RAG-Vector-Stores-Knowledge-Bases.md' or 'cram-d1.md'.
+        heading: The section title, with or without the leading ##.
+
+    Returns:
+        That section's text only (truncated if very long) — ask for another
+        section if you need more. On a miss, an ERROR line listing the
+        available headings.
+    """
     path = _guide_path(file_name) or (
         CRAM_DIR / Path(file_name).name if (CRAM_DIR / Path(file_name).name).exists() else None
     )
@@ -105,9 +127,17 @@ def read_section(file_name: str, heading: str) -> str:
 
 @tool
 def search_guides(query: str) -> str:
-    """Case-insensitive search across all guides and cram sheets. Returns up to
-    12 hits as 'file :: section :: matching line' so you can pick which section
-    to read_section() next. Use a short, specific query (a service or concept name)."""
+    """Search all guides and cram sheets, case-insensitively.
+
+    Use a short, specific query (a service or concept name), then pick which
+    section to read_section() next.
+
+    Args:
+        query: Substring to search for (minimum 3 characters).
+
+    Returns:
+        Up to 12 hits as 'file :: section :: matching line', or an ERROR/no-match line.
+    """
     q = query.strip().lower()
     if len(q) < 3:
         return "ERROR: query too short."

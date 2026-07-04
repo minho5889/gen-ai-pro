@@ -98,7 +98,7 @@ terraform output -raw gha_deploy_role_arn
 #      AWS_REGION, TF_STATE_BUCKET, GHA_DEPLOY_ROLE_ARN
 
 # 4. Branch protection (Settings > Branches > Add rule for main):
-#      require status checks: content, terraform, frontend, backend
+#      require status checks: content, lint, terraform, frontend, tests
 ```
 
 No AWS keys are ever stored in GitHub — the role trusts only `main` of this repo via OIDC.

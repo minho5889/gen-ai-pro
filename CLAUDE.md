@@ -32,6 +32,18 @@ current. Everything below exists to prevent a recurrence.
   two of this repo's worst historical bugs were confident absolutes that AWS had since shipped past
   (custom-model on-demand; KB resource policies).
 
+## Code conventions
+
+- **Functional core / imperative shell** in the logic-dense modules
+  (`tools/consistency_check.py`, `website/scripts/sync_corpus.py`,
+  `website/backend/app.py`): pure functions take content and return results;
+  the shell owns files, sockets, and boto3. New decision logic goes in the
+  core with a unit test in `tests/`; new I/O goes in the shell. The agent
+  chat loops are shells by nature — don't force the pattern there.
+- **Google-style docstrings** on public functions (Args/Returns/Raises),
+  enforced by ruff's pydocstyle rules. Agent `@tool` docstrings double as the
+  LLM-facing tool specs — edit their meaning deliberately.
+
 ## Before committing
 
 Run `make check` — it mirrors CI exactly: `tools/consistency_check.py` (question counts,

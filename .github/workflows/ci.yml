@@ -58,11 +58,15 @@ jobs:
       - run: npx prettier --check .
       - run: npm run build
 
-  backend:
+  tests:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with:
           python-version: "3.13"
-      - run: python3 website/backend/test_smoke.py
+      - run: pip install --quiet pytest
+      - name: Unit tests (functional cores)
+        run: pytest tests/ -q
+      - name: Integration smoke test (SSE contract)
+        run: python3 website/backend/test_smoke.py

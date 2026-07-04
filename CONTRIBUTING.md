@@ -19,7 +19,9 @@ Individual pieces: `make lint` (ruff + prettier), `make test` (backend smoke), `
   plus a [VERIFICATION-LOG.md](VERIFICATION-LOG.md) row, and never assert an AWS capability
   boundary without checking current docs.
 - **Code** must pass `make check` before pushing. CI enforces the same suite; `main` is
-  branch-protected on it.
+  branch-protected on it. Style: functional core / imperative shell in the logic-dense modules
+  (pure logic gets a unit test in `tests/`; I/O stays in the shell) and Google-style docstrings,
+  both enforced — see the conventions section in [CLAUDE.md](CLAUDE.md).
 - **Factual claims about AWS** in any new content need a source. Found an error instead? Open a
   [content-error issue](.github/ISSUE_TEMPLATE/content-error.yml) with the doc link.
 - Infrastructure changes: `terraform plan` output belongs in the PR description; applies are

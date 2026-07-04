@@ -55,6 +55,15 @@ Do not invent facts beyond the ground truth.
 
 
 def parse_exam(exam_no: str):
+    """Parse one mock exam into question records with audited answer keys.
+
+    Args:
+        exam_no: "1" or "2" — selects the mock-exam folder.
+
+    Returns:
+        Question dicts (num/multi/text/key/analysis); only questions whose
+        answer key was found in the analysis files are included.
+    """
     folder = REPO_ROOT / f"AIP-C01-Mock-Exam-{exam_no}"
     qtext = (folder / "questions" / f"AIP-C01-Mock-Exam-{exam_no}-Questions.md").read_text(
         encoding="utf-8"
@@ -81,10 +90,23 @@ def parse_exam(exam_no: str):
 
 
 def domain_of(qnum: int) -> int:
+    """Map a question number to its exam domain via the blueprint ranges.
+
+    Args:
+        qnum: Question number (1-65).
+
+    Returns:
+        Domain number 1-5.
+    """
     return next(d for d, (lo, hi) in DOMAIN_RANGES.items() if lo <= qnum <= hi)
 
 
 def scorecard(results):
+    """Print the drill scorecard: overall, per-domain, and weakest-domain pointer.
+
+    Args:
+        results: Dicts with ``domain`` and ``correct`` per answered question.
+    """
     total = len(results)
     right = sum(1 for r in results if r["correct"])
     print(
@@ -111,6 +133,15 @@ def scorecard(results):
 
 
 def run_mc(args) -> None:
+    """Run the multiple-choice drill loop.
+
+    Python picks questions and scores letters deterministically against the
+    audited keys (all-or-nothing on multi-select); the agent explains why and
+    probes with one follow-up.
+
+    Args:
+        args: Parsed CLI namespace (exam, domain).
+    """
     bank = []
     for exam in ["1", "2"] if args.exam == "both" else [args.exam]:
         bank += parse_exam(exam)
@@ -150,6 +181,15 @@ def run_mc(args) -> None:
 
 
 def parse_knowledge_checks(strategy_no: int):
+    """Extract a guide's Knowledge Check Q&A blocks.
+
+    Args:
+        strategy_no: Strategy-guide number (1-8) from GUIDE_MAP.
+
+    Returns:
+        Dicts with ``question`` (the summary line) and ``answer`` (the hidden
+        block, used as judging ground truth).
+    """
     _, fname = GUIDE_MAP[strategy_no]
     text = (GUIDES_DIR / fname).read_text(encoding="utf-8")
     kcs = []
@@ -161,6 +201,11 @@ def parse_knowledge_checks(strategy_no: int):
 
 
 def run_explain(args) -> None:
+    """Run the free-recall loop: student explains, the agent judges vs ground truth.
+
+    Args:
+        args: Parsed CLI namespace (guide).
+    """
     strategy_no = args.guide or random.choice(list(GUIDE_MAP))
     topic, _ = GUIDE_MAP[strategy_no]
     kcs = parse_knowledge_checks(strategy_no)
@@ -195,6 +240,7 @@ def run_explain(args) -> None:
 
 
 def main() -> None:
+    """Parse CLI arguments and dispatch to the selected drill mode."""
     parser = argparse.ArgumentParser(description="AIP-C01 understanding verifier (local model)")
     parser.add_argument("--mode", choices=["mc", "explain"], default="mc")
     parser.add_argument(

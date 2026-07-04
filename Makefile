@@ -2,6 +2,7 @@
 .DEFAULT_GOAL := help
 FRONTEND := website/frontend
 RUFF ?= ruff
+PYTEST ?= pytest
 
 help: ## list targets
 	@grep -E '^[a-z-]+:.*##' $(MAKEFILE_LIST) | awk -F':.*## ' '{printf "  %-14s %s\n", $$1, $$2}'
@@ -34,7 +35,8 @@ terraform: ## fmt-check + validate (no backend/AWS)
 frontend: ## typecheck + build the chat UI
 	cd $(FRONTEND) && npm run build
 
-test: ## backend SSE contract smoke test (no AWS)
+test: ## unit tests (functional cores) + backend SSE smoke test (no AWS)
+	$(PYTEST) tests/ -q
 	python3 website/backend/test_smoke.py
 
 corpus-dry: ## chunker stats without AWS

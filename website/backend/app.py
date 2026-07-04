@@ -4,6 +4,11 @@ Runs as a plain stdlib HTTP server behind the AWS Lambda Web Adapter layer,
 which is what gives a Python Lambda true response streaming (natively a
 Node-only feature). Zero pip dependencies — boto3 ships in the runtime.
 
+Architecture: functional core / imperative shell. The core (``parse_chat_request``
+through ``build_converse_kwargs``) is pure and unit-tested in
+``tests/test_app_core.py``; the ``Handler`` shell owns sockets and boto3 calls,
+and is covered end-to-end by ``test_smoke.py``.
+
 Contract:
   POST /chat  {"message": str, "history": [{"role": "user"|"assistant", "text": str}]}
   -> text/event-stream:
@@ -29,9 +34,6 @@ MAX_HISTORY_TURNS = int(os.environ.get("MAX_HISTORY_TURNS", "8"))
 # Field name is point-in-time — verify against current Nova 2 docs.
 EXTRA_FIELDS = json.loads(os.environ.get("ADDITIONAL_MODEL_FIELDS_JSON") or "{}")
 
-agent_rt = boto3.client("bedrock-agent-runtime")
-bedrock_rt = boto3.client("bedrock-runtime")
-
 SYSTEM_PROMPT = """\
 You are a fast, precise study assistant for the AWS Certified Generative AI
 Developer - Professional (AIP-C01) exam. Answer ONLY from the numbered context
@@ -43,26 +45,63 @@ passages provided; they come from the student's audited study guides. Rules:
 - Anything a passage marks (point-in-time): note it may have drifted.
 """
 
+# --------------------------- functional core ---------------------------------
 
-def retrieve(query: str):
-    t0 = time.monotonic()
-    resp = agent_rt.retrieve(
-        knowledgeBaseId=KB_ID,
-        retrievalQuery={"text": query[:900]},
-        retrievalConfiguration={"vectorSearchConfiguration": {"numberOfResults": TOP_K}},
-    )
-    ms = int((time.monotonic() - t0) * 1000)
+
+def parse_chat_request(raw: bytes) -> tuple[str, list[dict]]:
+    """Validate and unpack a /chat request body.
+
+    Args:
+        raw: Request body bytes.
+
+    Returns:
+        ``(message, history)`` where history is a list of role/text dicts.
+
+    Raises:
+        ValueError: On malformed JSON or an empty message.
+    """
+    try:
+        body = json.loads(raw or b"{}")
+    except json.JSONDecodeError as exc:
+        raise ValueError(f"invalid JSON: {exc}") from exc
+    message = str(body.get("message", "")).strip()
+    if not message:
+        raise ValueError("empty message")
+    history = body.get("history") or []
+    return message, history
+
+
+def format_passages(retrieval_results: list[dict]) -> tuple[str, list[dict]]:
+    """Turn KB retrieval results into a numbered context block and source list.
+
+    Args:
+        retrieval_results: ``retrievalResults`` items from a Retrieve response.
+
+    Returns:
+        ``(context_block, sources)`` — the block interleaves ``[n]`` markers and
+        breadcrumbs for citation; sources carry n/breadcrumb/score for the UI.
+    """
     passages, sources = [], []
-    for i, r in enumerate(resp.get("retrievalResults", []), 1):
+    for i, r in enumerate(retrieval_results, 1):
         text = r.get("content", {}).get("text", "")
         meta = r.get("metadata", {}) or {}
         crumb = meta.get("breadcrumb") or meta.get("source_file") or "study guides"
         passages.append(f"[{i}] ({crumb})\n{text}")
         sources.append({"n": i, "breadcrumb": str(crumb), "score": round(r.get("score", 0), 3)})
-    return "\n\n".join(passages), sources, ms
+    return "\n\n".join(passages), sources
 
 
-def build_messages(history, message, context_block):
+def build_messages(history: list[dict], message: str, context_block: str) -> list[dict]:
+    """Assemble Converse messages from trimmed history plus the grounded turn.
+
+    Args:
+        history: Prior turns as role/text dicts (client-supplied, untrusted).
+        message: The user's current question.
+        context_block: Numbered passages from ``format_passages``.
+
+    Returns:
+        Converse-shaped message list ending with the context-injected user turn.
+    """
     msgs = []
     for turn in history[-MAX_HISTORY_TURNS:]:
         role = "assistant" if turn.get("role") == "assistant" else "user"
@@ -74,18 +113,81 @@ def build_messages(history, message, context_block):
     return msgs
 
 
+def build_converse_kwargs(messages: list[dict]) -> dict:
+    """Build the converse_stream call arguments.
+
+    Args:
+        messages: Output of ``build_messages``.
+
+    Returns:
+        Keyword arguments for ``bedrock-runtime.converse_stream``, including the
+        reasoning-pin passthrough when configured.
+    """
+    kwargs = {
+        "modelId": MODEL_ID,
+        "system": [{"text": SYSTEM_PROMPT}],
+        "messages": messages,
+        "inferenceConfig": {"maxTokens": MAX_TOKENS, "temperature": 0.4, "topP": 0.9},
+    }
+    if EXTRA_FIELDS:
+        kwargs["additionalModelRequestFields"] = EXTRA_FIELDS
+    return kwargs
+
+
+def sse_frame(event: str, data: dict) -> bytes:
+    """Encode one server-sent event.
+
+    Args:
+        event: Event name (meta/token/done/error).
+        data: JSON-serializable payload.
+
+    Returns:
+        The wire bytes for the frame, including the blank-line terminator.
+    """
+    return f"event: {event}\ndata: {json.dumps(data, ensure_ascii=False)}\n\n".encode()
+
+
+# --------------------------- imperative shell --------------------------------
+
+agent_rt = boto3.client("bedrock-agent-runtime")
+bedrock_rt = boto3.client("bedrock-runtime")
+
+
+def retrieve(query: str) -> tuple[str, list[dict], int]:
+    """Query the Knowledge Base and format the results.
+
+    Args:
+        query: The user's question (truncated to the Retrieve limit).
+
+    Returns:
+        ``(context_block, sources, retrieval_ms)``.
+    """
+    t0 = time.monotonic()
+    resp = agent_rt.retrieve(
+        knowledgeBaseId=KB_ID,
+        retrievalQuery={"text": query[:900]},
+        retrievalConfiguration={"vectorSearchConfiguration": {"numberOfResults": TOP_K}},
+    )
+    ms = int((time.monotonic() - t0) * 1000)
+    context_block, sources = format_passages(resp.get("retrievalResults", []))
+    return context_block, sources, ms
+
+
 class Handler(BaseHTTPRequestHandler):
+    """HTTP shell: routes, headers, and the streaming loop. Logic lives in the core."""
+
     protocol_version = "HTTP/1.1"
 
-    def log_message(self, fmt, *args):  # keep CloudWatch logs terse
-        pass
+    def log_message(self, fmt, *args):
+        """Keep CloudWatch logs terse (adapter logs requests already)."""
 
-    def _sse(self, event: str, data: dict):
-        payload = f"event: {event}\ndata: {json.dumps(data, ensure_ascii=False)}\n\n"
-        self.wfile.write(payload.encode("utf-8"))
+    def _sse(self, event: str, data: dict) -> None:
+        """Write one SSE frame to the client and flush."""
+        self.wfile.write(sse_frame(event, data))
         self.wfile.flush()
 
     def do_GET(self):
+        """Serve /healthz; 404 anything else."""
         if self.path == "/healthz":
             body = b"ok"
             self.send_response(200)
@@ -98,6 +200,7 @@ class Handler(BaseHTTPRequestHandler):
             self.end_headers()
 
     def do_POST(self):
+        """Serve /chat: retrieve, stream model tokens as SSE, then close."""
         if self.path != "/chat":
             self.send_response(404)
             self.send_header("Content-Length", "0")
@@ -106,12 +209,8 @@ class Handler(BaseHTTPRequestHandler):
         t_start = time.monotonic()
         try:
             length = int(self.headers.get("Content-Length", "0"))
-            body = json.loads(self.rfile.read(length) or b"{}")
-            message = str(body.get("message", "")).strip()
-            history = body.get("history") or []
-            if not message:
-                raise ValueError("empty message")
-        except (ValueError, json.JSONDecodeError) as exc:
+            message, history = parse_chat_request(self.rfile.read(length))
+        except ValueError as exc:
             err = json.dumps({"message": f"bad request: {exc}"}).encode()
             self.send_response(400)
             self.send_header("Content-Type", "application/json")
@@ -134,16 +233,9 @@ class Handler(BaseHTTPRequestHandler):
             context_block, sources, retrieval_ms = retrieve(message)
             self._sse("meta", {"retrieval_ms": retrieval_ms, "sources": sources})
 
-            kwargs = dict(
-                modelId=MODEL_ID,
-                system=[{"text": SYSTEM_PROMPT}],
-                messages=build_messages(history, message, context_block),
-                inferenceConfig={"maxTokens": MAX_TOKENS, "temperature": 0.4, "topP": 0.9},
+            stream = bedrock_rt.converse_stream(
+                **build_converse_kwargs(build_messages(history, message, context_block))
             )
-            if EXTRA_FIELDS:
-                kwargs["additionalModelRequestFields"] = EXTRA_FIELDS
-
-            stream = bedrock_rt.converse_stream(**kwargs)
             for event in stream["stream"]:
                 delta = event.get("contentBlockDelta", {}).get("delta", {})
                 if "text" in delta:
@@ -155,7 +247,8 @@ class Handler(BaseHTTPRequestHandler):
             self._sse("error", {"message": str(exc)[:300]})
 
 
-def main():
+def main() -> None:
+    """Serve forever on ``$PORT`` (the Lambda Web Adapter's upstream)."""
     port = int(os.environ.get("PORT", "8080"))
     ThreadingHTTPServer(("0.0.0.0", port), Handler).serve_forever()
 

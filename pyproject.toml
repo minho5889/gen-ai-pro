@@ -10,16 +10,24 @@ target-version = "py311"
 extend-exclude = ["website/frontend"]
 
 [tool.ruff.lint]
-# E/W pycodestyle, F pyflakes, I isort, UP pyupgrade, B bugbear, SIM simplify
-select = ["E", "W", "F", "I", "UP", "B", "SIM"]
+# E/W pycodestyle, F pyflakes, I isort, UP pyupgrade, B bugbear, SIM simplify,
+# D pydocstyle (Google convention — see [tool.ruff.lint.pydocstyle])
+select = ["E", "W", "F", "I", "UP", "B", "SIM", "D"]
 ignore = [
   "E501", # line length enforced by the formatter where it matters
+  "D105", # magic-method docstrings add nothing
+  "D107", # __init__ documented at the class level
 ]
+
+[tool.ruff.lint.pydocstyle]
+convention = "google"
 
 [tool.ruff.lint.per-file-ignores]
 # The smoke test intentionally stubs modules before importing the app,
 # so import order there is semantic, not cosmetic.
-"website/backend/test_smoke.py" = ["E402", "I001"]
+"website/backend/test_smoke.py" = ["E402", "I001", "D"]
+# Test names are the documentation; docstring-per-test is noise.
+"tests/*" = ["D1"]
 
 [tool.ruff.format]
 quote-style = "double"
