@@ -1,7 +1,7 @@
 # NotebookLM Study Bundle — AIP-C01
 
 NotebookLM-optimized copies of the AIP-C01 study material. Content is identical to the guides in
-`AIP/`, but reformatted for Google NotebookLM, which reads Markdown as plain text:
+`../guides/`, but reformatted for Google NotebookLM, which reads Markdown as plain text:
 
 - **Mermaid diagrams → prose.** Every diagram is rewritten as a "**Diagram (described):**" paragraph
   so Audio Overview can read it aloud and chat can reason over it. (Originals render as meaningless
@@ -31,12 +31,13 @@ Notes on the split:
 - Each domain folder bundles the matching **cram sheet** — the densest, highest-signal source for
   NotebookLM's quiz/flashcard generation.
 
-`_common/` holds the overall study strategy — add it to any notebook (or a separate "AIP Overview"
-notebook) for cross-domain planning context.
+Want cross-domain planning context in a notebook? Also upload the root
+`00-AIP-C01-Study-Strategy.md` alongside any domain folder's files.
 
-`_all-in-one/` keeps the original single-notebook layout (all 8 guides together) if you'd rather have
-one big "AIP-C01" notebook. Lower retrieval precision, but fine for broad Audio Overviews. Optionally
-add `_common/00-AIP-C01-Study-Strategy.md` to it.
+> The former `_all-in-one/` and `_common/` folders were removed in July 2026: they duplicated every
+> transformed guide byte-for-byte and doubled the copy-sync surface for zero unique content. If you
+> want one big notebook anyway, upload each transformed guide once from across the `by-domain/`
+> folders (skip the duplicate blueprint copies).
 
 ## How to study in NotebookLM
 
@@ -44,11 +45,12 @@ add `_common/00-AIP-C01-Study-Strategy.md` to it.
 - **Synthesis Q&A** — "compare prompt caching vs. semantic caching," "list every place Guardrails
   contextual grounding is discussed," "build a one-page cheat sheet for this domain."
 - **Quiz me** — fine as light recall warm-ups, but for exam-representative practice use the
-  fact-checked `AIP/AIP-C01-Mock-Exam-1` and `-2`, not NotebookLM quizzes.
+  fact-checked `../AIP-C01-Mock-Exam-1` and `-2` (plus `../AIP-C01-Format-Drills/` for
+  ordering/matching), not NotebookLM quizzes.
 
 ## What NotebookLM CANNOT do here (use Claude Code instead)
 
-- **Generate diagrams/images** — it doesn't. Diagrams come from the Mermaid in `AIP/` (or Claude Code).
+- **Generate diagrams/images** — it doesn't. Diagrams come from the Mermaid in `../guides/` (or Claude Code).
 - **Fact-check against current AWS docs** — it answers only from these sources and will repeat any
   staleness. For fast-moving services (AgentCore, Bedrock quotas, Knowledge Bases) confirm with
   Claude Code + the AWS docs MCP.
@@ -57,6 +59,9 @@ add `_common/00-AIP-C01-Study-Strategy.md` to it.
 
 ## Keeping this in sync
 
-If you edit a guide in `AIP/`, regenerate its NotebookLM copy ("re-run the NotebookLM transform for
-guide 0X"), then re-copy it into the affected domain folder(s) and re-upload — NotebookLM does not
-auto-sync. The source of truth is always `AIP/*.md`; everything here is a derived copy.
+If you edit a guide in `../guides/`, regenerate its NotebookLM copy ("re-run the NotebookLM transform
+for guide 0X"), re-copy it into the affected domain folder(s) (guide 01 lives in both d1 and d2), and
+re-upload — NotebookLM does not auto-sync. The source of truth is always `../guides/*.md`; everything
+here is a derived copy. Run `python3 tools/consistency_check.py` from the repo root after any edit —
+it verifies the identical-copy invariants (cram sheets, blueprint) and the repo's other consistency
+rules.
