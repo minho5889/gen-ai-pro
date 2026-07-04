@@ -9,7 +9,7 @@
 
 ### 2. Domain Mapping
 **Domain:** Task 4.1/4.2 — Model selection (cascading added-latency risk vs tiering misclassification)
-**Task:** Task Task 4.2
+**Task:** Task 4.2
 
 ### 3. Option Analysis
 - **A** ❌ Cascading is ideal here because trying the cheap model first always reduces latency relative to calling the flagship directly
@@ -36,7 +36,7 @@ Cascading trades average-case cost for worst-case latency: an escalated request 
 
 ### 2. Domain Mapping
 **Domain:** Task 4.3 — Monitoring systems (multi-select: cost attribution, third-party LLM spend, drift)
-**Task:** Task Task 4.3
+**Task:** Task 4.3
 
 ### 3. Option Analysis
 - **A** ✅ Activate cost allocation tags (before the spend occurs, since they are not retroactive) and view spend grouped by tag in AWS Cost Explorer to attribute Bedrock cost to each business unit
@@ -65,7 +65,7 @@ Cost allocation tags (activated proactively, since tags are not retroactive) vie
 
 ### 2. Domain Mapping
 **Domain:** Task 4.1 — Cost optimization (multi-select: batch inference fit and its hard constraints)
-**Task:** Task Task 4.1
+**Task:** Task 4.1
 
 ### 3. Option Analysis
 - **A** ✅ Batch inference is a good fit for the bulk, offline, cost-sensitive portion: it processes a large bounded request set asynchronously via S3 at a documented discount relative to on-demand, trading away real-time latency

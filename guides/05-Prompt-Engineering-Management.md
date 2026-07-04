@@ -12,7 +12,7 @@
 | Prerequisite Knowledge | Guide 01 (Foundation Models & Bedrock Core — Converse API, inference parameters temperature/top-p/top-k, function-calling/tool-use contract, structured output), Guide 02 (RAG, Vector Stores & Knowledge Bases — retrieved-context grounding), Guide 04 (Agentic AI — Bedrock Agents advanced prompt templates and ReAct reasoning), Guide 06 (AI Safety, Security & Governance — Guardrails and prompt-injection security depth) |
 | Source Material | Official AIP-C01 Exam Guide, Amazon Bedrock User Guide, AWS Well-Architected Generative AI Lens, AIP strategy + blueprint, Guides 01/02/04/06, MCP-researched AWS documentation |
 
-> Note on numbering: this is the fifth Markdown file by build order (file 05), following the recommended 01 → 02 → 06 → 04 → 03 sequence, but its Study Strategy designation is Guide 03. The two values differ numerically — the same file-vs-strategy split as Guide 06, whose metadata records "file 03 / Guide 06." Both values are recorded explicitly above so the convention stays consistent with how Guides 01, 02, 03 (file), and 04 record their file position and strategy number.
+> Numbering: file `05` by build order; **Guide 03** in the study-strategy order. The canonical guide-to-file mapping for all eight guides is the table in the root README.
 
 ---
 

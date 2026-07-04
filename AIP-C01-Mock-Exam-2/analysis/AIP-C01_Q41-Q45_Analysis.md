@@ -9,7 +9,7 @@
 
 ### 2. Domain Mapping
 **Domain:** 3.1 Input and output safety controls
-**Task:** Task Task 3.1
+**Task:** Task 3.1
 
 ### 3. Option Analysis
 - **A** ✅ Run the guardrail policies in Detect mode, which reports findings in the trace but takes no action, then switch to Block mode once tuning is complete
@@ -36,7 +36,7 @@ Detect mode reports findings in the guardrail trace but takes no action, letting
 
 ### 2. Domain Mapping
 **Domain:** 3.1 Input and output safety controls
-**Task:** Task Task 3.1
+**Task:** Task 3.1
 
 ### 3. Option Analysis
 - **A** ✅ Redact and screen the source data at ingestion (pre-ingestion cleaning), with role-based access to the knowledge base via metadata filtering
@@ -64,7 +64,7 @@ A guardrail at the boundary screens the query and final answer but not the retri
 
 ### 2. Domain Mapping
 **Domain:** 3.2 Data security and privacy controls
-**Task:** Task Task 3.2
+**Task:** Task 3.2
 
 ### 3. Option Analysis
 - **A** ✅ Call ApplyGuardrail with source INPUT before the SageMaker call and source OUTPUT after it; grant only bedrock:ApplyGuardrail (no bedrock:InvokeModel)
@@ -91,7 +91,7 @@ ApplyGuardrail evaluates arbitrary text against guardrail policies with no found
 
 ### 2. Domain Mapping
 **Domain:** 3.2 Data security and privacy controls
-**Task:** Task Task 3.2
+**Task:** Task 3.2
 
 ### 3. Option Analysis
 - **A** ✅ Create an application inference profile per tenant, tag it for cost allocation, and drive ABAC off the tag; running inference through it requires bedrock:GetInferenceProfile plus InvokeModel
@@ -118,7 +118,7 @@ Application inference profiles (customer-created, distinct from system-defined c
 
 ### 2. Domain Mapping
 **Domain:** 3.2 Data security and privacy controls
-**Task:** Task Task 3.2
+**Task:** Task 3.2
 
 ### 3. Option Analysis
 - **A** ✅ The fine-tuned model can memorize and later replay its training data, so PII can resurface in outputs; redact the training data with Comprehend (after discovering it with Macie) before customization

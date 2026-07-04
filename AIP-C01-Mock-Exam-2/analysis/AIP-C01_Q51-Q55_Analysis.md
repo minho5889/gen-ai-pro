@@ -9,7 +9,7 @@
 
 ### 2. Domain Mapping
 **Domain:** Task 4.1 — Cost optimization (Provisioned Throughput economics and the always-on meter)
-**Task:** Task Task 4.1
+**Task:** Task 4.1
 
 ### 3. Option Analysis
 - **A** ❌ It is sound — a six-month commitment earns the deepest discount and guarantees the peak capacity, so it is the correct cost optimization
@@ -36,7 +36,7 @@ Provisioned Throughput is a fixed hourly commitment that bills the provisioned M
 
 ### 2. Domain Mapping
 **Domain:** Task 4.3 — Monitoring (the AWS/Bedrock throttle metric accounting trap)
-**Task:** Task Task 4.3
+**Task:** Task 4.3
 
 ### 3. Option Analysis
 - **A** ❌ The error metrics are only emitted for streaming operations, so the team must switch to ConverseStream for the alarm to populate
@@ -63,7 +63,7 @@ In the AWS/Bedrock namespace there is no aggregate error metric, and a throttled
 
 ### 2. Domain Mapping
 **Domain:** Task 4.2 — Performance optimization (perceived vs total latency; the streaming trap)
-**Task:** Task Task 4.2
+**Task:** Task 4.2
 
 ### 3. Option Analysis
 - **A** ❌ Both proposals reduce end-to-end latency: streaming returns the full response sooner and temperature 0 reduces the number of decode steps
@@ -90,7 +90,7 @@ The downstream parser consumes the whole response, so only total latency (Invoca
 
 ### 2. Domain Mapping
 **Domain:** Task 4.1 — Cost optimization (semantic caching correctness risk; data freshness)
-**Task:** Task Task 4.1
+**Task:** Task 4.1
 
 ### 3. Option Analysis
 - **A** ❌ There is no correctness risk because semantic caching always re-validates the cached answer against the live model before returning it
@@ -117,7 +117,7 @@ Semantic caching returns a stored answer in place of a fresh generation, so it c
 
 ### 2. Domain Mapping
 **Domain:** Task 4.2 — Performance optimization (RAG retrieval/index latency and input-token cost)
-**Task:** Task Task 4.2
+**Task:** Task 4.2
 
 ### 3. Option Analysis
 - **A** ❌ Enable response streaming so the first token appears sooner; this also lowers the input-token cost

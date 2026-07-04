@@ -63,7 +63,7 @@ Changes to a Bedrock Agent's instructions, action groups, or Knowledge Base asso
 
 ### 2. Domain Mapping
 **Domain:** 3.1 Input and output safety controls
-**Task:** Task Task 3.1
+**Task:** Task 3.1
 
 ### 3. Option Analysis
 - **A** ✅ Guardrails evaluate user inputs and model responses but do not evaluate the model's internal reasoning content blocks, so the 'thinking' the model emits before its answer is outside the guardrail's inspection boundary
@@ -90,7 +90,7 @@ A guardrail evaluates user inputs and model responses but explicitly does not in
 
 ### 2. Domain Mapping
 **Domain:** 3.1 Input and output safety controls
-**Task:** Task Task 3.1
+**Task:** Task 3.1
 
 ### 3. Option Analysis
 - **A** ✅ An AWS Step Functions Express workflow invoking the Comprehend, Lambda, and Bedrock steps
@@ -117,7 +117,7 @@ Express workflows are built for high-volume, short-duration (up to five minutes)
 
 ### 2. Domain Mapping
 **Domain:** 3.1 Input and output safety controls
-**Task:** Task Task 3.1
+**Task:** Task 3.1
 
 ### 3. Option Analysis
 - **A** ✅ For Anthropic models, structured outputs and citations are mutually exclusive; the developer must choose one — keep citations and parse manually, or drop citations and enforce the JSON Schema

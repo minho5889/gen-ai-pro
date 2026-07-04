@@ -20,7 +20,7 @@
 | "Replace PII with tag, keep rest of response" | Sensitive-info filter — MASK (reported ANONYMIZED) | Mask exists ONLY on PII filter |
 | "Reject whole response if PII present" | Sensitive-info filter — BLOCK | |
 | "Block a competitor name / specific word" | Word filter | Denied topics = themes, not words |
-| "Keep model off an entire subject area" | Denied topics (≤30, name+definition+≤5 phrases) | |
+| "Keep model off an entire subject area" | Denied topics (≤30 *(ceiling point-in-time)*, name+definition+≤5 phrases) | |
 | "Response invents facts not in source" | Contextual grounding — grounding score below threshold | Higher threshold = stricter |
 | "Correct but answers wrong question" | Contextual grounding — relevance score below threshold | |
 | "Provable/auditable compliance with encoded rules" | Automated Reasoning checks (formal logic, ≤99%, detect-only) | Same family as IAM Access Analyzer |
@@ -56,6 +56,7 @@
 | "Redact PII as objects retrieved from S3" | S3 Object Lambda + Comprehend | Original stays intact |
 | "Mask PII inline in prompt/response" | Guardrails sensitive-info filter | Boundary control at model |
 | "Clean RAG source before vector store" | Pre-ingestion redaction (Comprehend) | Guardrails can't reach corpus |
+| "Granular (table/column/row) access to the corpus data lake" | **Lake Formation** (over Glue Data Catalog; LF-tags at scale) | IAM/S3 = bucket/prefix level; data-layer control, not boundary |
 | "Control + audit the encryption key / revoke" | Customer-managed KMS key (CMK) | AWS owned key not manageable/auditable |
 | "Encryption at rest, no key mgmt" | Default AWS owned key | Free, fully managed |
 | "Are prompts used to train base model?" | No | Bedrock never trains base on your data |
@@ -191,7 +192,7 @@
 
 - 6 Guardrail policy types; content filters = 6 categories (Hate/Insults/Sexual/Violence/Misconduct/Prompt Attack).
 - Filter strength: NONE / LOW / MEDIUM / HIGH.
-- Denied topics: ≤30 per guardrail; definition ≤200 chars (Classic) / ≤1,000 (Standard); ≤5 sample phrases.
+- Denied topics: ≤30 per guardrail *(ceiling point-in-time — verify)*; definition ≤200 chars (Classic) / ≤1,000 (Standard); ≤5 sample phrases (≤100 chars each).
 - Word filter: custom list ≤10,000 entries, ≤3 words each.
 - Contextual grounding thresholds: 0 to 0.99 (higher = stricter). Source ≤100k chars, query ≤1k, response ≤5k.
 - Automated Reasoning: up to 99% accuracy; source docs ≤122,880 tokens; English-US only.

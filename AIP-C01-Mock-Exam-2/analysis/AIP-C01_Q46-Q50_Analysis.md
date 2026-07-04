@@ -9,7 +9,7 @@
 
 ### 2. Domain Mapping
 **Domain:** 3.2 Data security and privacy controls
-**Task:** Task Task 3.2
+**Task:** Task 3.2
 
 ### 3. Option Analysis
 - **A** ✅ The Pinecone vector-store connection references a Secrets Manager secret ARN (credentialsSecretArn) holding its API key
@@ -37,7 +37,7 @@ Third-party vector stores (Pinecone, Redis Enterprise Cloud) reference a credent
 
 ### 2. Domain Mapping
 **Domain:** 3.3 AI governance and compliance
-**Task:** Task Task 3.3
+**Task:** Task 3.3
 
 ### 3. Option Analysis
 - **A** ✅ AWS CloudTrail recording the management API calls and caller identity, with Amazon GuardDuty analyzing those events to flag suspicious Bedrock activity
@@ -64,7 +64,7 @@ Guardrail deletion and bucket repointing are control-plane management actions; C
 
 ### 2. Domain Mapping
 **Domain:** 3.3 AI governance and compliance
-**Task:** Task Task 3.3
+**Task:** Task 3.3
 
 ### 3. Option Analysis
 - **A** ✅ InvokeAgent, Retrieve, and RetrieveAndGenerate are CloudTrail data events, which are off by default and must be explicitly enabled with advanced event selectors by resource type
@@ -91,7 +91,7 @@ InvokeAgent, InvokeInlineAgent, Retrieve, RetrieveAndGenerate, and InvokeFlow ar
 
 ### 2. Domain Mapping
 **Domain:** 3.4 Responsible AI principles
-**Task:** Task Task 3.4
+**Task:** Task 3.4
 
 ### 3. Option Analysis
 - **A** ✅ Amazon SageMaker Model Monitor bias drift monitoring (ModelBiasMonitor), which has Clarify evaluate the live model against a baseline and alerts via CloudWatch when bias drifts out of range
@@ -118,7 +118,7 @@ Model Monitor bias drift monitoring (ModelBiasMonitor) establishes a baseline an
 
 ### 2. Domain Mapping
 **Domain:** 3.4 Responsible AI principles
-**Task:** Task Task 3.4
+**Task:** Task 3.4
 
 ### 3. Option Analysis
 - **A** ✅ For an AWS-provided model's documented intended use and limitations, the committee reads an AWS AI Service Card, which is authored by AWS
