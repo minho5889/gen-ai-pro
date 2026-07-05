@@ -71,7 +71,7 @@ data "aws_iam_policy_document" "gha_deploy" {
     sid       = "LambdaCode"
     effect    = "Allow"
     actions   = ["lambda:UpdateFunctionCode", "lambda:GetFunction"]
-    resources = [aws_lambda_function.chat.arn]
+    resources = [aws_lambda_function.chat.arn, aws_lambda_function.telegram.arn]
   }
   statement {
     sid       = "Ingest"

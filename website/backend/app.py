@@ -24,6 +24,8 @@ import time
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 
 import boto3
+import core
+from core import format_passages  # noqa: F401 — re-exported for shells/tests
 
 KB_ID = os.environ["KB_ID"]
 MODEL_ID = os.environ["MODEL_ID"]
@@ -71,46 +73,18 @@ def parse_chat_request(raw: bytes) -> tuple[str, list[dict]]:
     return message, history
 
 
-def format_passages(retrieval_results: list[dict]) -> tuple[str, list[dict]]:
-    """Turn KB retrieval results into a numbered context block and source list.
-
-    Args:
-        retrieval_results: ``retrievalResults`` items from a Retrieve response.
-
-    Returns:
-        ``(context_block, sources)`` — the block interleaves ``[n]`` markers and
-        breadcrumbs for citation; sources carry n/breadcrumb/score for the UI.
-    """
-    passages, sources = [], []
-    for i, r in enumerate(retrieval_results, 1):
-        text = r.get("content", {}).get("text", "")
-        meta = r.get("metadata", {}) or {}
-        crumb = meta.get("breadcrumb") or meta.get("source_file") or "study guides"
-        passages.append(f"[{i}] ({crumb})\n{text}")
-        sources.append({"n": i, "breadcrumb": str(crumb), "score": round(r.get("score", 0), 3)})
-    return "\n\n".join(passages), sources
-
-
 def build_messages(history: list[dict], message: str, context_block: str) -> list[dict]:
-    """Assemble Converse messages from trimmed history plus the grounded turn.
+    """Assemble Converse messages with this service's history-trim setting.
 
     Args:
         history: Prior turns as role/text dicts (client-supplied, untrusted).
         message: The user's current question.
-        context_block: Numbered passages from ``format_passages``.
+        context_block: Numbered passages from ``core.format_passages``.
 
     Returns:
         Converse-shaped message list ending with the context-injected user turn.
     """
-    msgs = []
-    for turn in history[-MAX_HISTORY_TURNS:]:
-        role = "assistant" if turn.get("role") == "assistant" else "user"
-        text = str(turn.get("text", ""))[:4000]
-        if text:
-            msgs.append({"role": role, "content": [{"text": text}]})
-    user_text = f"CONTEXT PASSAGES:\n{context_block}\n\nQUESTION: {message}"
-    msgs.append({"role": "user", "content": [{"text": user_text}]})
-    return msgs
+    return core.build_messages(history, message, context_block, MAX_HISTORY_TURNS)
 
 
 def build_converse_kwargs(messages: list[dict]) -> dict:

@@ -3,6 +3,16 @@
 Notable changes, [Keep a Changelog](https://keepachangelog.com/) style. Dates are commit dates;
 hashes are the landing commits.
 
+## 2026-07-07 — Telegram phone companion
+
+- Telegram bot per [website/TELEGRAM-SPEC.md](website/TELEGRAM-SPEC.md): RAG chat with
+  pseudo-streamed edits + `/drill` mock-exam questions with inline-keyboard answers (stateless
+  via callback data, all-or-nothing scoring against the audited keys)
+- Shared functional core extracted (`website/backend/core.py`); exam parsers decoupled from the
+  Strands SDK (`agents/exam_bank.py`, `agents/repo_map.py`) so the bank builder runs anywhere
+- First recorded stack deviation: public-auth function URL (Telegram can't SigV4) with secret-token
+  + owner-allowlist mitigations; bot credentials in SSM SecureString, never in state or GitHub
+
 ## 2026-07-07 — The paved road
 
 - ENGINEERING-STANDARD.md: the single authoritative layer — fixed stack (AWS-native, Python

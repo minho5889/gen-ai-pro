@@ -32,6 +32,7 @@ construction. Concurrency: cancel-in-progress per branch.
 | `website/frontend/**` | build → `s3 sync dist/ --delete` → CloudFront invalidation | build is the guard |
 | `website/backend/**` | zip → `lambda update-function-code` | smoke test re-runs first |
 | `guides/**`, `_cram/**`, `AIP-C01-Exam-Blueprint.md` | `sync_corpus.py` — re-chunk, md5-diff upload, **one batched ingestion job** | consistency checker re-runs first |
+| `website/telegram/**`, `website/backend/core.py`, mock-exam content | package (handler + core + bank rebuilt from exams) → `lambda update-function-code` | telegram unit tests re-run first |
 | `website/terraform/**` | `terraform plan` posted to the job summary — **never apply** | requires remote state (decision 1) |
 
 Deploy targets (bucket names, distribution id, function name, KB id) come from `terraform output`

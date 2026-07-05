@@ -1,0 +1,60 @@
+# CD: Telegram bot code — main only, path-filtered, OIDC. Unit tests guard.
+# Exam-content paths are included because bank.json is built from the mock
+# exams at package time (TELEGRAM-SPEC: same freshness model as the corpus).
+name: deploy-telegram
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "website/telegram/**"
+      - "website/backend/core.py"
+      - "AIP-C01-Mock-Exam-1/**"
+      - "AIP-C01-Mock-Exam-2/**"
+  workflow_dispatch:
+
+permissions:
+  id-token: write
+  contents: read
+
+concurrency:
+  group: deploy-telegram
+
+jobs:
+  deploy:
+    # Skips gracefully until the repo variables are bootstrapped.
+    if: vars.GHA_DEPLOY_ROLE_ARN != ''
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+      - name: Unit tests (the guard)
+        run: pip install --quiet pytest && pytest tests/test_telegram_core.py -q
+      - name: Package (handler + shared core + bank from the audited exams)
+        run: make telegram-package
+      - uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ vars.GHA_DEPLOY_ROLE_ARN }}
+          aws-region: ${{ vars.AWS_REGION }}
+      - uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_wrapper: false
+      - name: Resolve function name from remote state
+        id: tf
+        working-directory: website/terraform
+        run: |
+          terraform init -input=false \
+            -backend-config="bucket=${{ vars.TF_STATE_BUCKET }}" \
+            -backend-config="key=website/terraform.tfstate" \
+            -backend-config="region=${{ vars.AWS_REGION }}" \
+            -backend-config="use_lockfile=true"
+          echo "function=$(terraform output -raw telegram_function_name)" >> "$GITHUB_OUTPUT"
+      - name: Zip + update code
+        run: |
+          cd website/telegram/.build
+          zip -qr ../../telegram.zip .
+          aws lambda update-function-code \
+            --function-name "${{ steps.tf.outputs.function }}" \
+            --zip-file fileb://../../telegram.zip --publish

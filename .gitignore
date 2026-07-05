@@ -12,3 +12,6 @@ website/terraform/.build/
 website/frontend/node_modules/
 website/frontend/dist/
 website/scripts/out/
+website/telegram/.build/
+website/telegram/bank.json
+website/telegram.zip

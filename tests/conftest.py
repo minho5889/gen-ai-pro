@@ -13,3 +13,4 @@ os.environ.setdefault("MODEL_ID", "test-model")
 sys.modules.setdefault("boto3", __import__("types").ModuleType("boto3"))
 sys.modules["boto3"].client = lambda *a, **k: None  # core tests never call AWS
 sys.path.insert(0, os.path.join(REPO, "website/backend"))
+sys.path.insert(0, os.path.join(REPO, "website/telegram"))

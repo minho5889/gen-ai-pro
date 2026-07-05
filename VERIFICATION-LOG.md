@@ -36,6 +36,7 @@ but of a kind that drifts: quotas, prices, region lists, service status).
 | 25 | Nova 2 Lite: SFT + RFT supported on Bedrock; RFT ~66% avg accuracy gain claim | ✅🕐 | Bedrock RFT docs + AWS blog | 2026-07-06 | website/FEASIBILITY.md |
 | 26 | Customized Nova models serve via **on-demand at base-model token pricing** (PEFT models compatible with on-demand + PT) | ✅🕐 | AWS Nova customization blog/docs | 2026-07-06 | website/FEASIBILITY.md |
 | 27 | Nova 2 Lite ≈ $0.30/M in, $2.50/M out; reasoning-mode TTFT ~19 s at medium vs interactive-fast defaults | 🕐 | third-party trackers + Artificial Analysis | 2026-07-06 | website/FEASIBILITY.md |
+| 28 | Telegram Bot API: 4096-char messages, 64-byte callback_data, `secret_token` echoed as `X-Telegram-Bot-Api-Secret-Token`, editMessageText for in-place updates | 🕐 | core.telegram.org/bots/api | 2026-07-07 | website/TELEGRAM-SPEC.md, telegram handler |
 
 ## How to re-verify (the loop)
 

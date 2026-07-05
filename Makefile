@@ -49,4 +49,17 @@ drill: ## verifier agent, MC mode (needs Ollama)
 tutor: ## Socratic tutor agent (needs Ollama)
 	python3 agents/socratic_tutor.py
 
-.PHONY: help setup check consistency lint fmt terraform frontend test corpus-dry drill tutor
+telegram-package: ## stage the Telegram Lambda bundle (handler + shared core + bank)
+	rm -rf website/telegram/.build && mkdir -p website/telegram/.build
+	cp website/telegram/handler.py website/backend/core.py website/telegram/.build/
+	python3 website/telegram/build_bank.py website/telegram/.build/bank.json
+
+telegram-webhook: ## register the deployed function URL with Telegram (reads SSM)
+	@URL=$$(terraform -chdir=website/terraform output -raw telegram_function_url); \
+	CREDS=$$(aws ssm get-parameter --name /aip-study/telegram --with-decryption --query Parameter.Value --output text); \
+	TOKEN=$$(printf '%s' "$$CREDS" | python3 -c 'import sys,json;print(json.load(sys.stdin)["token"])'); \
+	SECRET=$$(printf '%s' "$$CREDS" | python3 -c 'import sys,json;print(json.load(sys.stdin)["secret"])'); \
+	curl -s "https://api.telegram.org/bot$$TOKEN/setWebhook" \
+	  -d "url=$$URL" -d "secret_token=$$SECRET" -d "drop_pending_updates=true" && echo
+
+.PHONY: help setup check consistency lint fmt terraform frontend test corpus-dry drill tutor telegram-package telegram-webhook

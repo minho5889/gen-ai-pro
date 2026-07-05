@@ -103,6 +103,29 @@ terraform output -raw gha_deploy_role_arn
 
 No AWS keys are ever stored in GitHub — the role trusts only `main` of this repo via OIDC.
 
+## Telegram bot (phone companion)
+
+Spec: [TELEGRAM-SPEC.md](TELEGRAM-SPEC.md) — RAG chat plus `/drill` with tappable answer buttons,
+served to exactly one chat id. One-time setup after the main deploy:
+
+```bash
+# 1. Create the bot with @BotFather (message it, /newbot) — you get a token.
+# 2. Store token + a random webhook secret in SSM (never in Terraform state or GitHub):
+aws ssm put-parameter --name /aip-study/telegram --type SecureString \
+  --value "{\"token\":\"<botfather-token>\",\"secret\":\"$(openssl rand -hex 24)\"}"
+
+# 3. Package + deploy, then register the webhook:
+make telegram-package
+terraform -chdir=terraform apply
+make telegram-webhook
+
+# 4. Message the bot /start — it replies with your chat id. Bind it:
+terraform -chdir=terraform apply -var telegram_owner_chat_id=<your-id>
+```
+
+Always run `make telegram-package` before a local `terraform plan/apply` (CI's validate is static
+and doesn't need it; the deploy workflow packages for itself).
+
 ## Known point-in-time risks
 
 - `awscc` schemas for S3 Vectors / KB are young — if `terraform plan` errors on an attribute name,
