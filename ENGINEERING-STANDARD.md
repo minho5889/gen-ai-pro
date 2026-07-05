@@ -6,6 +6,11 @@ conflict, this one wins; [CLAUDE.md](CLAUDE.md) (session contract), [CONTRIBUTIN
 (human workflow), and per-area specs ([website/CICD-SPEC.md](website/CICD-SPEC.md),
 [website/FEASIBILITY.md](website/FEASIBILITY.md)) implement it.
 
+**Portable form:** this standard's generic layer is packaged as the
+[paved-road](https://github.com/minho5889/paved-road) template repository — new projects
+start there and inherit the whole layer in minute one; this repo implements it with the
+study-platform specifics layered on top.
+
 **Deviation rule:** you may leave the road, but you file a flight plan first — a short decision
 record in the relevant spec (what, why, the flip condition), like the AWS-vs-GCP record in
 FEASIBILITY.md. Undocumented deviations get reverted on sight.
